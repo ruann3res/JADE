@@ -9,13 +9,92 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onCommand:UDIA.helloWorld",
+    "onCommand:UDIA.analyzeFile",
+    "onCommand:UDIA.selectOllamaModel"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "UDIA",
+      "properties": {
+        "udia.ollama.baseUrl": {
+          "type": "string",
+          "default": "http://127.0.0.1:11434",
+          "description": "Base URL for the Ollama API."
+        },
+        "udia.ollama.requestTimeoutMs": {
+          "type": "number",
+          "default": 900000,
+          "description": "Timeout in milliseconds for each Ollama request."
+        },
+        "udia.ollama.model": {
+          "type": "string",
+          "default": "deepseek-coder:6.7b",
+          "description": "Active Ollama model. Use the command UDIA: Select Ollama model to choose one of the supported models."
+        },
+        "udia.ai.batchMaxLines": {
+          "type": "number",
+          "default": 180,
+          "minimum": 1,
+          "description": "Maximum number of Java lines sent per batch to the AI."
+        },
+        "udia.ai.batchOverlapLines": {
+          "type": "number",
+          "default": 20,
+          "minimum": 0,
+          "description": "Number of overlapping lines between consecutive batches for context."
+        },
+        "udia.sonar.url": {
+          "type": "string",
+          "default": "https://sonarcloud.io",
+          "description": "SonarQube or SonarCloud URL."
+        },
+        "udia.sonar.token": {
+          "type": "string",
+          "default": "",
+          "description": "Sonar token."
+        },
+        "udia.sonar.organization": {
+          "type": "string",
+          "default": "",
+          "description": "SonarCloud organization, if applicable."
+        },
+        "udia.sonar.projectKey": {
+          "type": "string",
+          "default": "",
+          "description": "Project key for api/issues/search when udia.sonar.fetchOpenIssuesForFile is enabled."
+        },
+        "udia.sonar.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "When true, calls the Sonar API to enrich the prompt."
+        },
+        "udia.sonar.includeJavaRulesCatalog": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include Sonar Java rules catalog in the prompt."
+        },
+        "udia.sonar.fetchOpenIssuesForFile": {
+          "type": "boolean",
+          "default": false,
+          "description": "When true, fetches open issues for the current file from Sonar."
+        }
+      }
+    },
     "commands": [
       {
         "command": "UDIA.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "UDIA.analyzeFile",
+        "title": "UDIA: Analyze File"
+      },
+      {
+        "command": "UDIA.selectOllamaModel",
+        "title": "UDIA: Select Ollama model"
       }
     ]
   },
