@@ -5,7 +5,7 @@ import * as path from 'path';
 
 import * as vscode from 'vscode';
 import { createJavaSourceBatches } from '../services/ai/aiBatchAnalysis.service';
-import { parseAiSuggestionsJson } from '../services/ai/promptBuilder.service';
+import { buildJavaAnalysisChatMessages, parseAiSuggestionsJson } from '../services/ai/promptBuilder.service';
 import type {
 	AiAnalysisClient,
 	Clock,
@@ -28,6 +28,19 @@ suite('Extension Test Suite', () => {
 	test('Sample test', () => {
 		assert.strictEqual(-1, [1, 2, 3].indexOf(5));
 		assert.strictEqual(-1, [1, 2, 3].indexOf(0));
+	});
+
+	test('buildJavaAnalysisChatMessages embeds <ragContext> and never <sonarContext>', () => {
+		const messages = buildJavaAnalysisChatMessages({
+			fileName: 'Probe.java',
+			javaSource: 'class Probe {}',
+			ragContext: 'Local Java heuristics (retrieval hints only)',
+		});
+
+		const userMessage = messages[1]?.content ?? '';
+		assert.ok(userMessage.includes('<ragContext>'));
+		assert.ok(!userMessage.includes('<sonarContext>'));
+		assert.ok(userMessage.includes('Local Java heuristics'));
 	});
 
 	test('parseAiSuggestionsJson accepts string ranges as the anchor line', () => {
@@ -187,7 +200,7 @@ function defaultTestParameters(): ModelComparisonParameters {
 		batchMaxLines: 180,
 		batchOverlapLines: 20,
 		lineTolerance: 2,
-		sonarEnabled: false,
+		ragEnabled: true,
 	};
 }
 
