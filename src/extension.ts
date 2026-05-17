@@ -1,5 +1,8 @@
 import * as vscode from 'vscode';
 import { analyzeFileCommand } from './commands/analyzeFile.command';
+import { exportModelComparisonSamplesCommand } from './commands/exportModelComparisonSamples.command';
+import { runModelComparisonCommand } from './commands/runModelComparison.command';
+import { runOpenFileModelComparisonCommand } from './commands/runOpenFileModelComparison.command';
 import { selectOllamaModelCommand } from './commands/selectOllamaModel.command';
 import { registerUdiaOutput } from './outputChannel';
 
@@ -30,7 +33,27 @@ export function activate(context: vscode.ExtensionContext) {
 		selectOllamaModelCommand(),
 	);
 
-	context.subscriptions.push(disposable, analyzeJavaFile, selectOllamaModel);
+	const runModelComparison = vscode.commands.registerCommand('UDIA.runModelComparison', () =>
+		runModelComparisonCommand({ context, outputChannel }),
+	);
+
+	const runOpenFileModelComparison = vscode.commands.registerCommand(
+		'UDIA.runOpenFileModelComparison',
+		(resource?: vscode.Uri) => runOpenFileModelComparisonCommand({ context, outputChannel, resource }),
+	);
+
+	const exportModelComparisonSamples = vscode.commands.registerCommand('UDIA.exportModelComparisonSamples', () =>
+		exportModelComparisonSamplesCommand({ context, outputChannel }),
+	);
+
+	context.subscriptions.push(
+		disposable,
+		analyzeJavaFile,
+		selectOllamaModel,
+		runModelComparison,
+		runOpenFileModelComparison,
+		exportModelComparisonSamples,
+	);
 }
 
 export function deactivate() {}

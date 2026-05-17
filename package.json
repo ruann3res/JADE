@@ -12,7 +12,10 @@
   "activationEvents": [
     "onCommand:UDIA.helloWorld",
     "onCommand:UDIA.analyzeFile",
-    "onCommand:UDIA.selectOllamaModel"
+    "onCommand:UDIA.selectOllamaModel",
+    "onCommand:UDIA.runModelComparison",
+    "onCommand:UDIA.runOpenFileModelComparison",
+    "onCommand:UDIA.exportModelComparisonSamples"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -95,6 +98,18 @@
       {
         "command": "UDIA.selectOllamaModel",
         "title": "UDIA: Select Ollama model"
+      },
+      {
+        "command": "UDIA.runModelComparison",
+        "title": "UDIA: Run Model Comparison"
+      },
+      {
+        "command": "UDIA.runOpenFileModelComparison",
+        "title": "UDIA: Compare Models on Open Java File"
+      },
+      {
+        "command": "UDIA.exportModelComparisonSamples",
+        "title": "UDIA: Export Model Comparison Samples"
       }
     ]
   },

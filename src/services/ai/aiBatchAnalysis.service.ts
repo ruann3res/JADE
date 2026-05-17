@@ -74,7 +74,7 @@ export async function runAiAnalysisInBatches(input: {
 	sonarContext: string;
 	onBatchStart?: (stats: Pick<AiBatchStats, 'batchNumber' | 'totalBatches' | 'alertCount'>) => void;
 	chatRunner?: ChatRunner;
-	ollamaRequestOptions?: Pick<OllamaChatRequestOptions, 'timeoutMs'>;
+	ollamaRequestOptions?: Pick<OllamaChatRequestOptions, 'timeoutMs' | 'modelOptions'>;
 	batching?: AiBatchingOptions;
 }): Promise<AiBatchAnalysisResult> {
 	const batches = createJavaSourceBatches(input.javaSource, input.batching);
@@ -212,12 +212,12 @@ function defaultChatRunner(
 	baseUrl: string,
 	modelId: string,
 	messages: OllamaChatMessage[],
-	extra?: Pick<OllamaChatRequestOptions, 'timeoutMs'>,
+	extra?: Pick<OllamaChatRequestOptions, 'timeoutMs' | 'modelOptions'>,
 ): Promise<{ content: string }> {
 	return ollamaChat(baseUrl, modelId, messages, {
 		format: 'json',
-		modelOptions: { temperature: 0.15, num_predict: 4096 },
-		...extra,
+		modelOptions: extra?.modelOptions ?? { temperature: 0.15, num_predict: 4096 },
+		timeoutMs: extra?.timeoutMs,
 	});
 }
 
