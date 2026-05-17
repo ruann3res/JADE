@@ -2,6 +2,18 @@
 
 This is the README for your extension "UDIA". After writing up a brief description, we recommend including the following sections.
 
+## Model comparison protocol
+
+UDIA includes an official reproducible benchmark battery for comparing Deepseek and Qwen through Ollama.
+
+- Run `UDIA: Run Model Comparison` to execute the fixed benchmark.
+- Results are written to the open workspace in `model-comparison-results/`.
+- Run `UDIA: Compare Models on Open Java File` to compare Deepseek and Qwen against the currently open Java file. These results are written to `model-comparison-results/open-file/`.
+- Run `UDIA: Export Model Comparison Samples` to copy the official Java samples, expected findings, and protocol document into the open workspace for inspection.
+
+The benchmark always reads the official samples packaged with the extension. Exporting samples is for auditability and documentation; it does not mutate the packaged benchmark battery.
+Open-file comparison has no fixed ground truth, so it records model outputs and response metrics without treating suggestions as academically validated false positives.
+
 ## Features
 
 Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
