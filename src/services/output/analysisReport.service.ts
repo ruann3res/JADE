@@ -26,8 +26,6 @@ type ReportStats = {
 export class AnalysisReportService {
 	render(input: {
 		document: vscode.TextDocument;
-		sonarText: string;
-		sonarEnabled: boolean;
 		batchResult: AiBatchAnalysisResult;
 		filtered: AiSuggestionFilterResult;
 		aiDiagnostic: AiDiagnosticMappingResult;
@@ -40,7 +38,6 @@ export class AnalysisReportService {
 		};
 		this.renderOutput(
 			input.document,
-			input.sonarText,
 			input.batchResult.body,
 			input.ollamaConfig.modelId,
 			input.outputChannel,
@@ -56,7 +53,6 @@ export class AnalysisReportService {
 				batchStats: input.batchResult.batchStats,
 				structuredJsonEnvelope: input.batchResult.batchStats.some((batch) => batch.structuredJsonEnvelope === true),
 			},
-			input.sonarEnabled,
 			promptDebug,
 			input.filtered.truncated,
 		);
@@ -64,21 +60,14 @@ export class AnalysisReportService {
 
 	private renderOutput(
 		document: vscode.TextDocument,
-		sonarText: string,
 		aiBody: string,
 		modelId: string,
 		outputChannel: vscode.OutputChannel,
 		stats: ReportStats,
-		sonarIntegrationOn: boolean,
 		promptDebug: PromptLoadDebug,
 		truncatedForUi: number,
 	): void {
 		const fileLabel = document.fileName.split(/[/\\]/).pop() ?? document.fileName;
-		const sonarPreviewLimit = 25_000;
-		const sonarPreview =
-			sonarText.length > sonarPreviewLimit
-				? `${sonarText.slice(0, sonarPreviewLimit)}\n... (truncated in Output; full text was sent to Ollama in the prompt.)`
-				: sonarText;
 
 		outputChannel.clear();
 		udiaLogSection('UDIA REPORT');
@@ -88,9 +77,7 @@ export class AnalysisReportService {
 		outputChannel.appendLine('');
 
 		udiaLogSection('Overview');
-		outputChannel.appendLine(
-			`Sonar: ${sonarIntegrationOn ? 'API lookup enabled' : 'disabled'} (snippet below).`,
-		);
+		outputChannel.appendLine('RAG: local lexical heuristics (always on, no configuration).');
 		const iaOverview =
 			stats.parsedCount === 0
 				? stats.structuredJsonEnvelope
@@ -123,8 +110,16 @@ export class AnalysisReportService {
 			outputChannel.appendLine(batch.error ? `${base}, error=${batch.error}` : base);
 		}
 
-		udiaLogSection('Sonar Snippet');
-		outputChannel.appendLine(sonarPreview);
+		udiaLogSection('RAG Context');
+		for (const batch of stats.batchStats) {
+			const ids = batch.ragRetrievedIds ?? [];
+			const truncated = batch.ragTruncated === true ? 'yes' : 'no';
+			const label = ids.length > 0 ? ids.join(', ') : 'none';
+			const retriever = batch.ragRetrieverName ?? 'unknown';
+			outputChannel.appendLine(
+				`Batch ${batch.batchNumber}/${batch.totalBatches}: retriever=${retriever}, heuristics=[${label}] truncated=${truncated}`,
+			);
+		}
 
 		udiaLogSection('AI Response');
 		outputChannel.appendLine(aiBody);

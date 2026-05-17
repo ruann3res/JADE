@@ -4,6 +4,7 @@ import { exportModelComparisonSamplesCommand } from './commands/exportModelCompa
 import { runModelComparisonCommand } from './commands/runModelComparison.command';
 import { runOpenFileModelComparisonCommand } from './commands/runOpenFileModelComparison.command';
 import { selectOllamaModelCommand } from './commands/selectOllamaModel.command';
+import { resetSetupCommand, runSetupCommand } from './commands/setup.command';
 import { registerUdiaOutput } from './outputChannel';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -46,6 +47,9 @@ export function activate(context: vscode.ExtensionContext) {
 		exportModelComparisonSamplesCommand({ context, outputChannel }),
 	);
 
+	const setupCommand = vscode.commands.registerCommand('UDIA.setup', () => runSetupCommand({ context }));
+	const resetSetup = vscode.commands.registerCommand('UDIA.resetSetup', () => resetSetupCommand({ context }));
+
 	context.subscriptions.push(
 		disposable,
 		analyzeJavaFile,
@@ -53,6 +57,8 @@ export function activate(context: vscode.ExtensionContext) {
 		runModelComparison,
 		runOpenFileModelComparison,
 		exportModelComparisonSamples,
+		setupCommand,
+		resetSetup,
 	);
 }
 

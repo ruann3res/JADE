@@ -4,8 +4,10 @@ import { runAiAnalysisInBatches } from '../services/ai/aiBatchAnalysis.service';
 import { AiDiagnosticMapperService } from '../services/ai/aiDiagnosticMapper.service';
 import { AiSuggestionFilterService } from '../services/ai/aiSuggestionFilter.service';
 import { OllamaConfigService } from '../services/config/ollamaConfig.service';
+import { RagConfigService } from '../services/config/ragConfig.service';
 import { AnalysisReportService } from '../services/output/analysisReport.service';
-import { SonarContextService } from '../services/sonar/sonarContext.service';
+import { createRagContextService } from '../services/rag';
+import { SetupStateService } from '../services/setup';
 import { ReportPanelService } from '../services/webview/reportPanel.service';
 import { BatchFailureNotifierService } from '../services/vscode/batchFailureNotifier.service';
 import { CompletionToastService } from '../services/vscode/completionToast.service';
@@ -26,7 +28,7 @@ export class AnalyzeFileHandler {
 	private readonly languageGuard = new LanguageGuardService();
 	private readonly progressNotifier = new ProgressNotifierService();
 	private readonly ollamaConfig = new OllamaConfigService();
-	private readonly sonarContext = new SonarContextService();
+	private readonly ragConfig = new RagConfigService();
 	private readonly batchFailureNotifier = new BatchFailureNotifierService();
 	private readonly aiSuggestionFilter = new AiSuggestionFilterService();
 	private readonly aiDiagnosticMapper = new AiDiagnosticMapperService();
@@ -52,11 +54,16 @@ export class AnalyzeFileHandler {
 		udiaLogSection('Analysis start');
 		udiaLog(`Analyzing: ${document.uri.fsPath} (${document.languageId})`);
 
-		await this.progressNotifier.run('UDIA: Java analysis (Sonar + Ollama)', async (progress) => {
+		await this.progressNotifier.run('UDIA: Java analysis (RAG + Ollama)', async (progress) => {
 			progress.report({ increment: 0, message: 'Ollama configuration' });
 			const ollamaConfig = this.ollamaConfig.read();
-
-			const sonar = await this.sonarContext.build({ document, progress });
+			const ragRuntimeConfig = this.ragConfig.read();
+			const setupState = new SetupStateService(input.context);
+			const ragContextService = createRagContextService({
+				ragConfig: ragRuntimeConfig,
+				ollamaConfig,
+				setupState,
+			});
 
 			progress.report({ increment: 40, message: 'Ollama' });
 			const batchResult = await runAiAnalysisInBatches({
@@ -64,7 +71,7 @@ export class AnalyzeFileHandler {
 				modelId: ollamaConfig.modelId,
 				fileName: document.fileName.split(/[/\\]/).pop() ?? document.fileName,
 				javaSource: document.getText(),
-				sonarContext: sonar.text,
+				ragContextService,
 				onBatchStart: ({ batchNumber, totalBatches, alertCount }) => {
 					progress.report({
 						message: `Ollama batch ${batchNumber}/${totalBatches} (${alertCount} alert(s) in batch)`,
@@ -86,8 +93,6 @@ export class AnalyzeFileHandler {
 
 			this.analysisReport.render({
 				document,
-				sonarText: sonar.text,
-				sonarEnabled: sonar.enabled,
 				batchResult,
 				filtered,
 				aiDiagnostic,

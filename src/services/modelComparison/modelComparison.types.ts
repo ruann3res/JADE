@@ -33,7 +33,7 @@ export type ModelComparisonParameters = {
 	batchMaxLines: number;
 	batchOverlapLines: number;
 	lineTolerance: number;
-	sonarEnabled: boolean;
+	ragEnabled: boolean;
 };
 
 export type ModelComparisonAnalysisInput = {
@@ -136,7 +136,7 @@ export const DEFAULT_COMPARISON_PARAMETERS: ModelComparisonParameters = {
 	batchMaxLines: 180,
 	batchOverlapLines: 20,
 	lineTolerance: 2,
-	sonarEnabled: false,
+	ragEnabled: true,
 };
 
 export const MODEL_COMPARISON_MODELS: ModelComparisonModel[] = [

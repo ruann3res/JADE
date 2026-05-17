@@ -1,13 +1,17 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { OllamaConfigService } from '../services/config/ollamaConfig.service';
+import { RagConfigService } from '../services/config/ragConfig.service';
 import {
 	DEFAULT_COMPARISON_PARAMETERS,
 	type ModelComparisonSample,
 } from '../services/modelComparison/modelComparison.types';
 import { ModelComparisonRunner } from '../services/modelComparison/modelComparisonRunner.service';
+import { OllamaAnalysisClient } from '../services/modelComparison/ollamaAnalysisClient.service';
 import { FileSystemResultExporter } from '../services/modelComparison/resultExporter.service';
 import { InMemorySampleRepository, sha256 } from '../services/modelComparison/sampleRepository.service';
+import { createRagContextService } from '../services/rag';
+import { SetupStateService } from '../services/setup';
 import { LanguageGuardService } from '../services/vscode/languageGuard.service';
 
 export async function runOpenFileModelComparisonCommand(input: {
@@ -34,11 +38,15 @@ export async function runOpenFileModelComparisonCommand(input: {
 	}
 
 	const sample = buildSampleFromDocument(document, workspaceRoot);
+	const ollamaConfig = new OllamaConfigService().read();
+	const ragConfig = new RagConfigService().read();
+	const setupState = new SetupStateService(input.context);
+	const ragContextService = createRagContextService({ ragConfig, ollamaConfig, setupState });
 	const runner = new ModelComparisonRunner({
 		sampleRepository: new InMemorySampleRepository([sample]),
 		resultExporter: new FileSystemResultExporter(workspaceRoot, 'model-comparison-results/open-file'),
+		analysisClient: new OllamaAnalysisClient({ ragContextService }),
 	});
-	const ollamaConfig = new OllamaConfigService().read();
 
 	await vscode.window.withProgress(
 		{

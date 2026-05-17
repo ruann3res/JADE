@@ -1,4 +1,5 @@
 import { runAiAnalysisInBatches } from '../ai/aiBatchAnalysis.service';
+import { RagContextService } from '../rag';
 import type {
 	AiAnalysisClient,
 	ModelComparisonAnalysisInput,
@@ -6,13 +7,19 @@ import type {
 } from './modelComparison.types';
 
 export class OllamaAnalysisClient implements AiAnalysisClient {
+	private readonly ragContextService: RagContextService;
+
+	constructor(deps: { ragContextService?: RagContextService } = {}) {
+		this.ragContextService = deps.ragContextService ?? new RagContextService();
+	}
+
 	async analyze(input: ModelComparisonAnalysisInput): Promise<ModelComparisonAnalysisResult> {
 		return runAiAnalysisInBatches({
 			baseUrl: input.baseUrl,
 			modelId: input.model.id,
 			fileName: input.sample.fileName,
 			javaSource: input.sample.source,
-			sonarContext: '',
+			ragContextService: this.ragContextService,
 			ollamaRequestOptions: {
 				timeoutMs: input.timeoutMs,
 				modelOptions: {

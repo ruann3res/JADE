@@ -15,7 +15,9 @@
     "onCommand:UDIA.selectOllamaModel",
     "onCommand:UDIA.runModelComparison",
     "onCommand:UDIA.runOpenFileModelComparison",
-    "onCommand:UDIA.exportModelComparisonSamples"
+    "onCommand:UDIA.exportModelComparisonSamples",
+    "onCommand:UDIA.setup",
+    "onCommand:UDIA.resetSetup"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -49,40 +51,15 @@
           "minimum": 0,
           "description": "Number of overlapping lines between consecutive batches for context."
         },
-        "udia.sonar.url": {
+        "udia.rag.qdrant.url": {
           "type": "string",
-          "default": "https://sonarcloud.io",
-          "description": "SonarQube or SonarCloud URL."
+          "default": "http://localhost:6333",
+          "description": "Qdrant HTTP URL spun up by `UDIA: Setup`. Override only if Docker exposes Qdrant on a different port."
         },
-        "udia.sonar.token": {
+        "udia.rag.embedding.model": {
           "type": "string",
-          "default": "",
-          "description": "Sonar token."
-        },
-        "udia.sonar.organization": {
-          "type": "string",
-          "default": "",
-          "description": "SonarCloud organization, if applicable."
-        },
-        "udia.sonar.projectKey": {
-          "type": "string",
-          "default": "",
-          "description": "Project key for api/issues/search when udia.sonar.fetchOpenIssuesForFile is enabled."
-        },
-        "udia.sonar.enabled": {
-          "type": "boolean",
-          "default": false,
-          "description": "When true, calls the Sonar API to enrich the prompt."
-        },
-        "udia.sonar.includeJavaRulesCatalog": {
-          "type": "boolean",
-          "default": true,
-          "description": "Include Sonar Java rules catalog in the prompt."
-        },
-        "udia.sonar.fetchOpenIssuesForFile": {
-          "type": "boolean",
-          "default": false,
-          "description": "When true, fetches open issues for the current file from Sonar."
+          "default": "nomic-embed-text",
+          "description": "Ollama embedding model used by the RAG retriever. Pulled automatically by `UDIA: Setup`."
         }
       }
     },
@@ -110,6 +87,14 @@
       {
         "command": "UDIA.exportModelComparisonSamples",
         "title": "UDIA: Export Model Comparison Samples"
+      },
+      {
+        "command": "UDIA.setup",
+        "title": "UDIA: Setup"
+      },
+      {
+        "command": "UDIA.resetSetup",
+        "title": "UDIA: Reset Setup"
       }
     ]
   },
@@ -128,15 +113,18 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.118.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
-    "typescript-eslint": "^8.56.1",
-    "eslint": "^9.39.3",
+    "@types/vscode": "^1.118.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
     "esbuild": "^0.27.3",
+    "eslint": "^9.39.3",
     "npm-run-all": "^4.1.5",
     "typescript": "^5.9.3",
-    "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-electron": "^2.5.2"
+    "typescript-eslint": "^8.56.1"
+  },
+  "dependencies": {
+    "@qdrant/js-client-rest": "^1.18.0"
   }
 }

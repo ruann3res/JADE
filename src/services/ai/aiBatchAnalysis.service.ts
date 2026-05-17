@@ -1,4 +1,5 @@
 import type { AiSuggestionParsed } from '../../entities/aiSuggestion';
+import { RagContextService } from '../rag';
 import {
 	buildJavaAnalysisChatMessages,
 	parseAiSuggestionsJson,
@@ -14,6 +15,9 @@ export type AiBatchStats = {
 	lineStart: number;
 	lineEnd: number;
 	error?: string;
+	ragRetrievedIds?: string[];
+	ragTruncated?: boolean;
+	ragRetrieverName?: string;
 	/** Present when the batch returned a JSON object with a `suggestions` key (array). */
 	structuredJsonEnvelope?: boolean;
 };
@@ -71,7 +75,7 @@ export async function runAiAnalysisInBatches(input: {
 	modelId: string;
 	fileName: string;
 	javaSource: string;
-	sonarContext: string;
+	ragContextService?: RagContextService;
 	onBatchStart?: (stats: Pick<AiBatchStats, 'batchNumber' | 'totalBatches' | 'alertCount'>) => void;
 	chatRunner?: ChatRunner;
 	ollamaRequestOptions?: Pick<OllamaChatRequestOptions, 'timeoutMs' | 'modelOptions'>;
@@ -83,6 +87,7 @@ export async function runAiAnalysisInBatches(input: {
 	const batchStats: AiBatchStats[] = [];
 	const bodyParts: string[] = [];
 	let promptDebug = EMPTY_PROMPT_DEBUG;
+	const ragService = input.ragContextService ?? new RagContextService();
 	const chat =
 		input.chatRunner ??
 		((base, modelId, messages) =>
@@ -91,10 +96,11 @@ export async function runAiAnalysisInBatches(input: {
 	for (const [index, batch] of batches.entries()) {
 		const batchNumber = index + 1;
 		input.onBatchStart?.({ batchNumber, totalBatches, alertCount: 0 });
+		const rag = await ragService.buildFromSource(batch.source);
 		const messages = buildJavaAnalysisChatMessages({
 			fileName: input.fileName,
 			javaSource: batch.source,
-			sonarContext: input.sonarContext,
+			ragContext: rag.text,
 			lineStart: batch.lineStart,
 			lineEnd: batch.lineEnd,
 			totalLines: batch.totalLines,
@@ -119,6 +125,9 @@ export async function runAiAnalysisInBatches(input: {
 				userCharLength: messages[1]?.content.length ?? 0,
 				lineStart: batch.lineStart,
 				lineEnd: batch.lineEnd,
+				ragRetrievedIds: [...rag.retrievedIds],
+				ragTruncated: rag.truncated,
+				ragRetrieverName: rag.retrieverName,
 			});
 			bodyParts.push(formatBatchBody(batchNumber, totalBatches, response.content));
 		} catch (error) {
@@ -131,6 +140,9 @@ export async function runAiAnalysisInBatches(input: {
 				userCharLength: messages[1]?.content.length ?? 0,
 				lineStart: batch.lineStart,
 				lineEnd: batch.lineEnd,
+				ragRetrievedIds: [...rag.retrievedIds],
+				ragTruncated: rag.truncated,
+				ragRetrieverName: rag.retrieverName,
 				error: message,
 			});
 			bodyParts.push(formatBatchBody(batchNumber, totalBatches, `Ollama error: ${message}`));

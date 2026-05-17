@@ -1,9 +1,13 @@
 import * as vscode from 'vscode';
 import { OllamaConfigService } from '../services/config/ollamaConfig.service';
+import { RagConfigService } from '../services/config/ragConfig.service';
 import { DEFAULT_COMPARISON_PARAMETERS } from '../services/modelComparison/modelComparison.types';
 import { ModelComparisonRunner } from '../services/modelComparison/modelComparisonRunner.service';
+import { OllamaAnalysisClient } from '../services/modelComparison/ollamaAnalysisClient.service';
 import { FileSystemResultExporter } from '../services/modelComparison/resultExporter.service';
 import { FileSampleRepository } from '../services/modelComparison/sampleRepository.service';
+import { createRagContextService } from '../services/rag';
+import { SetupStateService } from '../services/setup';
 
 export async function runModelComparisonCommand(input: {
 	context: vscode.ExtensionContext;
@@ -15,11 +19,15 @@ export async function runModelComparisonCommand(input: {
 		return;
 	}
 
+	const ollamaConfig = new OllamaConfigService().read();
+	const ragConfig = new RagConfigService().read();
+	const setupState = new SetupStateService(input.context);
+	const ragContextService = createRagContextService({ ragConfig, ollamaConfig, setupState });
 	const runner = new ModelComparisonRunner({
 		sampleRepository: new FileSampleRepository(input.context.extensionUri.fsPath),
 		resultExporter: new FileSystemResultExporter(workspaceRoot),
+		analysisClient: new OllamaAnalysisClient({ ragContextService }),
 	});
-	const ollamaConfig = new OllamaConfigService().read();
 
 	await vscode.window.withProgress(
 		{

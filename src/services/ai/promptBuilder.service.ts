@@ -11,7 +11,7 @@ function wrapCdata(value: string): string {
 export function buildJavaAnalysisChatMessages(input: {
 	fileName: string;
 	javaSource: string;
-	sonarContext: string;
+	ragContext: string;
 	lineStart?: number;
 	lineEnd?: number;
 	totalLines?: number;
@@ -20,7 +20,7 @@ export function buildJavaAnalysisChatMessages(input: {
 }): OllamaChatMessage[] {
 	const system = getJavaAnalysisSystemInstructions();
 	const source = numberJavaSourceLines(input.javaSource, input.lineStart ?? 1);
-	const sonar = input.sonarContext || '(empty)';
+	const rag = input.ragContext || '(empty)';
 	const lineStart = input.lineStart ?? 1;
 	const lineEnd = input.lineEnd ?? lineStart + input.javaSource.split(/\r?\n/).length - 1;
 	const totalLines = input.totalLines ?? lineEnd;
@@ -32,9 +32,9 @@ export function buildJavaAnalysisChatMessages(input: {
 <batch>${batchNumber}/${totalBatches}</batch>
 <absoluteLineRange>${lineStart}-${lineEnd}</absoluteLineRange>
 <totalFileLines>${totalLines}</totalFileLines>
-<sonarContext>
-${wrapCdata(sonar)}
-</sonarContext>
+<ragContext>
+${wrapCdata(rag)}
+</ragContext>
 <code lineNumbers="absolute">
 ${wrapCdata(source)}
 </code>
