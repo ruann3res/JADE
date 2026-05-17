@@ -102,6 +102,7 @@ export class AnalyzeFileHandler {
 
 			const panel = this.reportPanel.create(input.context);
 			this.reportPanel.fillWithDefaultFeedback(panel, {
+				context: input.context,
 				suggestions: filtered.kept,
 				model: ollamaConfig.modelId,
 				fileName: document.fileName.split(/[/\\]/).pop() ?? document.fileName,

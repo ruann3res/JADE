@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { analyzeFileCommand } from './commands/analyzeFile.command';
+import { exportFeedbackCommand } from './commands/exportFeedback.command';
 import { exportModelComparisonSamplesCommand } from './commands/exportModelComparisonSamples.command';
 import { runModelComparisonCommand } from './commands/runModelComparison.command';
 import { runOpenFileModelComparisonCommand } from './commands/runOpenFileModelComparison.command';
@@ -47,6 +48,8 @@ export function activate(context: vscode.ExtensionContext) {
 		exportModelComparisonSamplesCommand({ context, outputChannel }),
 	);
 
+	const exportFeedback = vscode.commands.registerCommand('UDIA.exportFeedback', () => exportFeedbackCommand());
+
 	const setupCommand = vscode.commands.registerCommand('UDIA.setup', () => runSetupCommand({ context }));
 	const resetSetup = vscode.commands.registerCommand('UDIA.resetSetup', () => resetSetupCommand({ context }));
 
@@ -57,6 +60,7 @@ export function activate(context: vscode.ExtensionContext) {
 		runModelComparison,
 		runOpenFileModelComparison,
 		exportModelComparisonSamples,
+		exportFeedback,
 		setupCommand,
 		resetSetup,
 	);

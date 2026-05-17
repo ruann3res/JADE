@@ -16,6 +16,7 @@
     "onCommand:UDIA.runModelComparison",
     "onCommand:UDIA.runOpenFileModelComparison",
     "onCommand:UDIA.exportModelComparisonSamples",
+    "onCommand:UDIA.exportFeedback",
     "onCommand:UDIA.setup",
     "onCommand:UDIA.resetSetup"
   ],
@@ -87,6 +88,10 @@
       {
         "command": "UDIA.exportModelComparisonSamples",
         "title": "UDIA: Export Model Comparison Samples"
+      },
+      {
+        "command": "UDIA.exportFeedback",
+        "title": "UDIA: Export Feedback"
       },
       {
         "command": "UDIA.setup",

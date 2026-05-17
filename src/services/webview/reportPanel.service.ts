@@ -1,15 +1,20 @@
 import * as crypto from 'crypto';
 import * as vscode from 'vscode';
 import type { AiSuggestionParsed } from '../../entities/aiSuggestion';
-import type { FeedbackCategory, FeedbackRecord } from '../../entities/feedback';
+import type { FeedbackCategory, FeedbackReason, FeedbackRecord, FeedbackVerdict } from '../../entities/feedback';
+import { JAVA_ANALYSIS_PROMPT_LOG_LABEL } from '../ai/prompts/javaAnalysisPrompt';
 import { appendFeedbackRecord, feedbackFileName } from './feedback.service';
 
 export type FeedbackSavePayload = {
+	reportId: string;
 	suggestionId: string;
 	category: FeedbackCategory;
+	line: number | null;
+	title: string;
 	suggestionText: string;
 	rating: number | null;
-	falsePositive: boolean;
+	verdict: FeedbackVerdict;
+	reason: FeedbackReason | null;
 	comment: string | null;
 };
 
@@ -32,8 +37,9 @@ export class ReportPanelService {
 		onFeedback: (payload: FeedbackSavePayload) => Promise<void>,
 	): void {
 		const nonce = crypto.randomBytes(16).toString('base64');
+		const reportId = crypto.randomUUID();
 		panel.webview.options = { enableScripts: true };
-		panel.webview.html = buildHtml(panel.webview.cspSource, nonce, suggestions, meta);
+		panel.webview.html = buildHtml(panel.webview.cspSource, nonce, suggestions, { ...meta, reportId });
 		panel.webview.onDidReceiveMessage(async (message: unknown) => {
 			if (!message || typeof message !== 'object') {
 				return;
@@ -48,6 +54,7 @@ export class ReportPanelService {
 	fillWithDefaultFeedback(
 		panel: vscode.WebviewPanel,
 		input: {
+			context: vscode.ExtensionContext;
 			suggestions: AiSuggestionParsed[];
 			model: string;
 			fileName: string;
@@ -58,14 +65,34 @@ export class ReportPanelService {
 			input.suggestions,
 			{ model: input.model, fileName: input.fileName },
 			async (payload) => {
+				const title = payload.title.slice(0, 200);
+				const suggestion = payload.suggestionText.slice(0, 500);
 				const record: FeedbackRecord = {
+					feedbackId: crypto.randomUUID(),
 					timestamp: new Date().toISOString(),
+					reportId: payload.reportId,
+					findingId: buildFindingId({
+						model: input.model,
+						file: input.fileName,
+						line: payload.line,
+						category: payload.category,
+						title,
+						suggestion,
+					}),
+					suggestionId: payload.suggestionId,
 					model: input.model,
+					promptVersion: JAVA_ANALYSIS_PROMPT_LOG_LABEL,
+					pluginVersion: readExtensionVersion(input.context),
 					category: payload.category,
 					file: input.fileName,
-					suggestion: payload.suggestionText.slice(0, 500),
+					line: payload.line,
+					title,
+					suggestion,
+					reviewed: true,
 					rating: payload.rating,
-					falsePositive: payload.falsePositive,
+					verdict: payload.verdict,
+					reason: payload.reason,
+					falsePositive: payload.verdict === 'false_positive',
 					comment: payload.comment,
 				};
 				try {
@@ -84,7 +111,7 @@ function buildHtml(
 	cspSource: string,
 	nonce: string,
 	suggestions: AiSuggestionParsed[],
-	meta: { model: string; fileName: string },
+	meta: { model: string; fileName: string; reportId: string },
 ): string {
 	const data = JSON.stringify({ suggestions, meta }).replace(/<\//g, '<\\/');
 	const escapedTitle = escapeHtml('UDIA — report and review');
@@ -99,7 +126,8 @@ function buildHtml(
     .card { border: 1px solid var(--vscode-widget-border); border-radius: 6px; padding: 12px; margin-bottom: 12px; }
     .meta { opacity: 0.85; font-size: 0.85rem; margin-bottom: 8px; }
     .stars span { cursor: pointer; font-size: 1.2rem; margin-right: 2px; }
-    textarea { width: 100%; min-height: 56px; box-sizing: border-box; margin-top: 8px; background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); }
+    textarea, select { width: 100%; box-sizing: border-box; margin-top: 4px; background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); }
+    textarea { min-height: 56px; margin-top: 8px; }
     button { margin-top: 8px; margin-right: 8px; padding: 6px 12px; cursor: pointer; }
     label { display: block; margin-top: 8px; }
     .ok { color: var(--vscode-testing-iconPassed); }
@@ -122,7 +150,7 @@ function buildHtml(
       }
       DATA.suggestions.forEach((s) => {
         const id = s.id;
-        state[id] = state[id] || { rating: null, falsePositive: false, comment: '' };
+        state[id] = state[id] || { rating: null, verdict: 'unclear', reason: '', comment: '' };
         const card = document.createElement('div');
         card.className = 'card';
         const line = s.line != null ? ('Line ' + s.line + ' · ') : '';
@@ -131,7 +159,24 @@ function buildHtml(
           '<div>' + escapeHtml(s.summary) + '</div>' +
           '<div class="meta">' + escapeHtml(s.detail) + '</div>' +
           '<div class="stars" data-id="' + id + '"></div>' +
-          '<label><input type="checkbox" data-fp="' + id + '" /> False positive</label>' +
+          '<label>Verdict<select data-verdict="' + id + '">' +
+          '<option value="unclear">Unclear</option>' +
+          '<option value="valid">Valid issue</option>' +
+          '<option value="false_positive">False positive</option>' +
+          '<option value="partially_valid">Partially valid</option>' +
+          '</select></label>' +
+          '<label>Reason<select data-reason="' + id + '">' +
+          '<option value="">Select a reason (optional)</option>' +
+          '<option value="useful">Useful</option>' +
+          '<option value="test_file">Test or example code</option>' +
+          '<option value="missing_context">Missing context</option>' +
+          '<option value="wrong_line">Wrong line</option>' +
+          '<option value="not_security_issue">Not a real security issue</option>' +
+          '<option value="already_handled">Already handled</option>' +
+          '<option value="too_generic">Too generic</option>' +
+          '<option value="wrong_fix">Bad fix suggestion</option>' +
+          '<option value="other">Other</option>' +
+          '</select></label>' +
           '<textarea data-comment="' + id + '" placeholder="Comment (optional)"></textarea>' +
           '<button data-save="' + id + '">Save feedback</button>' +
           '<span class="ok" data-done="' + id + '"></span>';
@@ -146,10 +191,15 @@ function buildHtml(
           });
           stars.appendChild(sp);
         }
-        const fp = card.querySelector('[data-fp="' + id + '"]');
-        fp.checked = state[id].falsePositive;
-        fp.addEventListener('change', () => {
-          state[id].falsePositive = fp.checked;
+        const verdict = card.querySelector('[data-verdict="' + id + '"]');
+        verdict.value = state[id].verdict;
+        verdict.addEventListener('change', () => {
+          state[id].verdict = verdict.value;
+        });
+        const reason = card.querySelector('[data-reason="' + id + '"]');
+        reason.value = state[id].reason;
+        reason.addEventListener('change', () => {
+          state[id].reason = reason.value;
         });
         const ta = card.querySelector('[data-comment="' + id + '"]');
         ta.value = state[id].comment;
@@ -161,11 +211,15 @@ function buildHtml(
           vscode.postMessage({
             type: 'saveFeedback',
             payload: {
+              reportId: DATA.meta.reportId,
               suggestionId: id,
               category: s.category,
+              line: s.line == null ? null : s.line,
+              title: s.summary,
               suggestionText: text.slice(0, 500),
               rating: state[id].rating,
-              falsePositive: state[id].falsePositive,
+              verdict: state[id].verdict,
+              reason: state[id].reason || null,
               comment: state[id].comment.trim() ? state[id].comment.trim() : null,
             },
           });
@@ -192,4 +246,24 @@ function escapeHtml(value: string): string {
 		.replace(/</g, '&lt;')
 		.replace(/>/g, '&gt;')
 		.replace(/"/g, '&quot;');
+}
+
+function buildFindingId(input: {
+	model: string;
+	file: string;
+	line: number | null;
+	category: FeedbackCategory;
+	title: string;
+	suggestion: string;
+}): string {
+	return crypto
+		.createHash('sha256')
+		.update([input.model, input.file, String(input.line ?? ''), input.category, input.title, input.suggestion].join('\u001f'))
+		.digest('hex')
+		.slice(0, 24);
+}
+
+function readExtensionVersion(context: vscode.ExtensionContext): string {
+	const packageJson = context.extension.packageJSON as { version?: unknown };
+	return typeof packageJson.version === 'string' ? packageJson.version : 'unknown';
 }
