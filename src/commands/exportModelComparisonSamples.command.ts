@@ -3,7 +3,6 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 
 const SAMPLES_SOURCE_DIRECTORY = 'samples/model-comparison';
-const PROTOCOL_SOURCE_FILE = 'prds/PRD-07-protocolo-comparacao-modelos.md';
 const TARGET_DIRECTORY = 'model-comparison-samples';
 
 export async function exportModelComparisonSamplesCommand(input: {
@@ -18,15 +17,20 @@ export async function exportModelComparisonSamplesCommand(input: {
 
 	const extensionRoot = input.context.extensionUri.fsPath;
 	const sourceSamples = path.join(extensionRoot, SAMPLES_SOURCE_DIRECTORY);
-	const sourceProtocol = path.join(extensionRoot, PROTOCOL_SOURCE_FILE);
-	const targetRoot = await resolveTargetDirectory(path.join(workspaceRoot, TARGET_DIRECTORY));
 
+	if (!(await exists(sourceSamples))) {
+		const message = `UDIA: samples directory not found at ${sourceSamples}. Cannot export.`;
+		input.outputChannel.appendLine(`[Model comparison] ${message}`);
+		vscode.window.showErrorMessage(message);
+		return;
+	}
+
+	const targetRoot = await resolveTargetDirectory(path.join(workspaceRoot, TARGET_DIRECTORY));
 	await fs.mkdir(targetRoot, { recursive: true });
 	await fs.cp(sourceSamples, path.join(targetRoot, SAMPLES_SOURCE_DIRECTORY), { recursive: true });
-	await fs.copyFile(sourceProtocol, path.join(targetRoot, path.basename(PROTOCOL_SOURCE_FILE)));
 
 	input.outputChannel.appendLine(`[Model comparison] Exported official samples to ${targetRoot}`);
-	vscode.window.showInformationMessage(`UDIA: official model comparison samples exported to ${targetRoot}`);
+	vscode.window.showInformationMessage(`UDIA: model comparison samples exported to ${targetRoot}`);
 }
 
 function resolveWorkspaceRoot(): string | undefined {

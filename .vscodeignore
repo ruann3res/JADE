@@ -15,4 +15,3 @@ vsc-extension-quickstart.md
 
 # Keep reproducible benchmark artifacts packaged with the extension.
 !samples/**
-!prds/**
