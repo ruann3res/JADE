@@ -1,0 +1,58 @@
+[
+  {
+    "id": "sql-injection-001",
+    "file": "SqlInjectionSample.java",
+    "line": 14,
+    "category": "security",
+    "summary": "SQL query concatenates user input",
+    "rationale": "The query builds SQL by concatenating the name parameter, allowing SQL injection; use a PreparedStatement with bound parameters."
+  },
+  {
+    "id": "unclosed-resource-001",
+    "file": "UnclosedResourceSample.java",
+    "line": 7,
+    "category": "bug",
+    "summary": "BufferedReader is not closed",
+    "rationale": "The reader is returned from the method without try-with-resources or explicit close, which can leak file descriptors."
+  },
+  {
+    "id": "swallowed-exception-001",
+    "file": "SwallowedExceptionSample.java",
+    "line": 5,
+    "category": "codeSmell",
+    "summary": "Exception is swallowed without handling",
+    "rationale": "The catch block ignores NumberFormatException, hiding malformed input and making failures difficult to diagnose."
+  },
+  {
+    "id": "null-risk-001",
+    "file": "NullPointerSample.java",
+    "line": 3,
+    "category": "bug",
+    "summary": "String is dereferenced before null validation",
+    "rationale": "Calling input.isEmpty() before checking for null can throw NullPointerException when callers pass a null value."
+  },
+  {
+    "id": "duplication-001",
+    "file": "DuplicationSample.java",
+    "line": 3,
+    "category": "duplication",
+    "summary": "Calculation logic is duplicated",
+    "rationale": "calculateBasic and calculatePremium repeat the same tax, fee, and total calculation; extract shared logic to avoid drift."
+  },
+  {
+    "id": "complexity-001",
+    "file": "ComplexitySample.java",
+    "line": 2,
+    "category": "codeSmell",
+    "summary": "Classification method has high branching complexity",
+    "rationale": "The method combines multiple nested conditions and ternaries, making behavior harder to test and maintain."
+  },
+  {
+    "id": "hardcoded-secret-001",
+    "file": "HardcodedSecretSample.java",
+    "line": 3,
+    "category": "security",
+    "summary": "API key is hardcoded in source code",
+    "rationale": "Embedding credentials in source risks accidental exposure; load secrets from protected configuration instead."
+  }
+]
