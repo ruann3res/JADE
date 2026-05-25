@@ -1,5 +1,10 @@
 import * as vscode from 'vscode';
-import { udiaLog, udiaLogSection, udiaShowOutput } from '../outputChannel';
+import { jadeLog, jadeLogSection, jadeShowOutput } from '../outputChannel';
+import {
+	AiExecutionReportExporter,
+	buildAiExecutionReportId,
+	type AiExecutionReport,
+} from '../services/ai/aiExecutionReport.service';
 import { runAiAnalysisInBatches } from '../services/ai/aiBatchAnalysis.service';
 import { AiDiagnosticMapperService } from '../services/ai/aiDiagnosticMapper.service';
 import { AiSuggestionFilterService } from '../services/ai/aiSuggestionFilter.service';
@@ -8,6 +13,7 @@ import { RagConfigService } from '../services/config/ragConfig.service';
 import { AnalysisReportService } from '../services/output/analysisReport.service';
 import { createRagContextService } from '../services/rag';
 import { SetupStateService } from '../services/setup';
+import { AiExecutionPanelService } from '../services/webview/aiExecutionPanel.service';
 import { ReportPanelService } from '../services/webview/reportPanel.service';
 import { BatchFailureNotifierService } from '../services/vscode/batchFailureNotifier.service';
 import { CompletionToastService } from '../services/vscode/completionToast.service';
@@ -35,6 +41,7 @@ export class AnalyzeFileHandler {
 	private readonly diagnosticsPublisher = new DiagnosticsPublisherService();
 	private readonly analysisReport = new AnalysisReportService();
 	private readonly reportPanel = new ReportPanelService();
+	private readonly aiExecutionPanel = new AiExecutionPanelService();
 	private readonly completionToast = new CompletionToastService();
 
 	async execute(input: AnalyzeFileHandlerInput): Promise<void> {
@@ -50,11 +57,13 @@ export class AnalyzeFileHandler {
 			return;
 		}
 
-		udiaShowOutput(true);
-		udiaLogSection('Analysis start');
-		udiaLog(`Analyzing: ${document.uri.fsPath} (${document.languageId})`);
+		jadeShowOutput(true);
+		jadeLogSection('Analysis start');
+		jadeLog(`Analyzing: ${document.uri.fsPath} (${document.languageId})`);
+		const startedAt = new Date().toISOString();
+		const startedMs = Date.now();
 
-		await this.progressNotifier.run('UDIA: Java analysis (RAG + Ollama)', async (progress) => {
+		await this.progressNotifier.run('JADE: Java analysis (RAG + Ollama)', async (progress) => {
 			progress.report({ increment: 0, message: 'Ollama configuration' });
 			const ollamaConfig = this.ollamaConfig.read();
 			const ragRuntimeConfig = this.ragConfig.read();
@@ -108,8 +117,59 @@ export class AnalyzeFileHandler {
 				fileName: document.fileName.split(/[/\\]/).pop() ?? document.fileName,
 			});
 
+			const batchErrors = batchResult.batchStats
+				.map((batch) => batch.error)
+				.filter((error): error is string => typeof error === 'string' && error.length > 0);
+			const finishedAt = new Date().toISOString();
+			const executionReport: AiExecutionReport = {
+				reportId: buildAiExecutionReportId('analyze', startedAt),
+				kind: 'analyze',
+				status: batchErrors.length > 0 ? 'warning' : 'success',
+				startedAt,
+				finishedAt,
+				durationMs: Math.max(0, Date.now() - startedMs),
+				modelId: ollamaConfig.modelId,
+				fileName: document.fileName.split(/[/\\]/).pop() ?? document.fileName,
+				filePath: document.uri.fsPath,
+				summary: `Parsed ${batchResult.suggestions.length} suggestion(s), kept ${filtered.kept.length}, published ${aiDiagnostic.diagnostics.length} diagnostic(s).`,
+				errors: batchErrors,
+				rawResponse: batchResult.body,
+				analysis: {
+					totalSuggestions: batchResult.suggestions.length,
+					keptSuggestions: filtered.kept.length,
+					droppedInvalidLine: filtered.droppedInvalidLine,
+					truncatedForUi: filtered.truncated,
+					diagnosticCount: aiDiagnostic.diagnostics.length,
+					structuredFixCount: aiDiagnostic.suggestions.filter((suggestion) => suggestion.fix).length,
+					batchStats: batchResult.batchStats,
+					promptDebug: batchResult.promptDebug,
+					suggestions: filtered.kept,
+				},
+			};
+			await exportAiExecutionReport(resolveWorkspaceRoot(), executionReport, input.outputChannel);
+			const executionPanel = this.aiExecutionPanel.create(input.context);
+			this.aiExecutionPanel.fill(executionPanel, executionReport);
+
 			this.completionToast.show({ filtered, batchResult, aiDiagnostic });
-			udiaLog('Analysis complete.');
+			jadeLog('Analysis complete.');
 		});
 	}
+}
+
+async function exportAiExecutionReport(
+	workspaceRoot: string | undefined,
+	report: AiExecutionReport,
+	outputChannel: vscode.OutputChannel,
+): Promise<void> {
+	if (!workspaceRoot) {
+		return;
+	}
+	const artifacts = await new AiExecutionReportExporter(workspaceRoot).export(report);
+	for (const artifact of artifacts) {
+		outputChannel.appendLine(`[AI report] ${artifact.format.toUpperCase()}: ${artifact.path}`);
+	}
+}
+
+function resolveWorkspaceRoot(): string | undefined {
+	return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
 }

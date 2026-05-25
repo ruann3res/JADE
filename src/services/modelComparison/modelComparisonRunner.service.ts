@@ -123,11 +123,14 @@ export class ModelComparisonRunner {
 				suggestions: analysis.suggestions,
 				matches,
 				lineCount: sample.lineCount,
+				evaluationMode: sample.evaluationMode,
+				expectedFindingCount: sample.expectedFindings.length,
 			});
 			return {
 				modelId: model.id,
 				modelLabel: model.label,
 				file: sample.fileName,
+				evaluationMode: sample.evaluationMode,
 				metrics,
 				matches,
 				batchStats: analysis.batchStats,
@@ -143,11 +146,14 @@ export class ModelComparisonRunner {
 				modelId: model.id,
 				modelLabel: model.label,
 				file: sample.fileName,
+				evaluationMode: sample.evaluationMode,
 				metrics: calculateMetrics({
 					responseTimeMs,
 					suggestions: [],
 					matches: [],
 					lineCount: sample.lineCount,
+					evaluationMode: sample.evaluationMode,
+					expectedFindingCount: sample.expectedFindings.length,
 				}),
 				matches: [],
 				batchStats: [],
@@ -203,6 +209,8 @@ export function calculateMetrics(input: {
 	suggestions: AiSuggestionParsed[];
 	matches: FindingMatch[];
 	lineCount: number;
+	evaluationMode?: ModelComparisonSample['evaluationMode'];
+	expectedFindingCount?: number;
 }): ModelComparisonMetrics {
 	const rawSuggestionCount = input.suggestions.length;
 	const validSuggestionCount = input.suggestions.filter((suggestion) =>
@@ -211,17 +219,33 @@ export function calculateMetrics(input: {
 	const usefulSuggestionCount = input.matches.filter((match) => match.expected !== undefined).length;
 	const falsePositiveCount = input.matches.filter((match) => match.falsePositive).length;
 	const ratingSum = input.matches.reduce((sum, match) => sum + match.rating, 0);
+	const hasGroundTruth = input.evaluationMode !== 'none' && input.expectedFindingCount !== undefined;
+	const expectedFindingCount = hasGroundTruth ? input.expectedFindingCount ?? 0 : null;
+	const matchedExpectedCount = hasGroundTruth ? usefulSuggestionCount : null;
+	const precision = hasGroundTruth ? ratio(usefulSuggestionCount, usefulSuggestionCount + falsePositiveCount) : null;
+	const recall = hasGroundTruth ? ratio(usefulSuggestionCount, expectedFindingCount ?? 0) : null;
+	const f1Score =
+		precision === null || recall === null
+			? null
+			: precision + recall === 0
+				? 0
+				: round((2 * precision * recall) / (precision + recall), 4);
 
 	return {
 		responseTimeMs: input.responseTimeMs,
 		rawSuggestionCount,
 		validSuggestionCount,
 		invalidSuggestionCount: rawSuggestionCount - validSuggestionCount,
+		expectedFindingCount,
+		matchedExpectedCount,
 		usefulSuggestionCount,
 		averageFeedbackRating: rawSuggestionCount === 0 ? 0 : round(ratingSum / rawSuggestionCount, 2),
 		falsePositiveCount,
 		falsePositiveRate:
 			validSuggestionCount === 0 ? 0 : round(falsePositiveCount / validSuggestionCount, 4),
+		precision,
+		recall,
+		f1Score,
 	};
 }
 
@@ -234,18 +258,32 @@ function round(value: number, decimals: number): number {
 	return Math.round(value * factor) / factor;
 }
 
+function ratio(numerator: number, denominator: number): number {
+	if (denominator <= 0) {
+		return 0;
+	}
+	return round(numerator / denominator, 4);
+}
+
 function toSummaryRow(result: ModelComparisonCaseResult): ModelComparisonSummaryRow {
 	return {
 		modelId: result.modelId,
 		modelLabel: result.modelLabel,
 		file: result.file,
+		evaluationMode: result.evaluationMode,
 		responseTimeMs: result.metrics.responseTimeMs,
 		rawSuggestionCount: result.metrics.rawSuggestionCount,
 		validSuggestionCount: result.metrics.validSuggestionCount,
+		invalidSuggestionCount: result.metrics.invalidSuggestionCount,
+		expectedFindingCount: result.metrics.expectedFindingCount,
+		matchedExpectedCount: result.metrics.matchedExpectedCount,
 		usefulSuggestionCount: result.metrics.usefulSuggestionCount,
 		averageFeedbackRating: result.metrics.averageFeedbackRating,
 		falsePositiveCount: result.metrics.falsePositiveCount,
 		falsePositiveRate: result.metrics.falsePositiveRate,
+		precision: result.metrics.precision,
+		recall: result.metrics.recall,
+		f1Score: result.metrics.f1Score,
 	};
 }
 

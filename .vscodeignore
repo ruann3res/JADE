@@ -5,6 +5,8 @@ node_modules/**
 src/**
 .gitignore
 .yarnrc
+pnpm-lock.yaml
+package-lock.json
 esbuild.js
 vsc-extension-quickstart.md
 **/tsconfig.json

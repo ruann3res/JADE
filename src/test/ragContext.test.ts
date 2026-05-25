@@ -12,7 +12,7 @@ import {
 	type JavaHeuristic,
 	type QdrantSearchHit,
 	type RagConfig,
-	type UdiaQdrantClient,
+	type JadeQdrantClient,
 } from '../services/rag';
 
 const SQL_SOURCE = `
@@ -174,7 +174,7 @@ suite('QdrantHeuristicRetriever', () => {
 				tags: ['cwe', 'injection'],
 			},
 		};
-		const qdrant: Pick<UdiaQdrantClient, 'search'> = {
+		const qdrant: Pick<JadeQdrantClient, 'search'> = {
 			async search(_vector, limit): Promise<QdrantSearchHit[]> {
 				return [hit].slice(0, limit);
 			},
@@ -182,7 +182,7 @@ suite('QdrantHeuristicRetriever', () => {
 
 		const retriever = new QdrantHeuristicRetriever({
 			embeddingClient,
-			qdrant: qdrant as UdiaQdrantClient,
+			qdrant: qdrant as JadeQdrantClient,
 		});
 		const matches = await retriever.retrieve('class A {}', [], {
 			...DEFAULT_RAG_CONFIG,
@@ -203,7 +203,7 @@ suite('QdrantHeuristicRetriever', () => {
 				return [0.1];
 			},
 		};
-		const qdrant: Pick<UdiaQdrantClient, 'search'> = {
+		const qdrant: Pick<JadeQdrantClient, 'search'> = {
 			async search() {
 				return [
 					{ score: 0.42, payload: { id: 'java:S1', title: 't1', category: 'bug', guidance: '' } },
@@ -214,7 +214,7 @@ suite('QdrantHeuristicRetriever', () => {
 		let debug: { hitCount: number; kept: number; topScore: number | null } | undefined;
 		const retriever = new QdrantHeuristicRetriever({
 			embeddingClient,
-			qdrant: qdrant as UdiaQdrantClient,
+			qdrant: qdrant as JadeQdrantClient,
 			onSearchDebug: (info) => {
 				debug = { hitCount: info.hitCount, kept: info.kept, topScore: info.topScore };
 			},
@@ -236,7 +236,7 @@ suite('QdrantHeuristicRetriever', () => {
 				return [0.1];
 			},
 		};
-		const qdrant: Pick<UdiaQdrantClient, 'search'> = {
+		const qdrant: Pick<JadeQdrantClient, 'search'> = {
 			async search() {
 				return [
 					{ score: 0.6, payload: { id: 'java:S99', title: 't', category: 'bug', guidance: '' } },
@@ -245,7 +245,7 @@ suite('QdrantHeuristicRetriever', () => {
 		};
 		const retriever = new QdrantHeuristicRetriever({
 			embeddingClient,
-			qdrant: qdrant as UdiaQdrantClient,
+			qdrant: qdrant as JadeQdrantClient,
 		});
 
 		const matches = await retriever.retrieve('class A {}', [], {
@@ -265,14 +265,14 @@ suite('QdrantHeuristicRetriever', () => {
 				return [0];
 			},
 		};
-		const qdrant: Pick<UdiaQdrantClient, 'search'> = {
+		const qdrant: Pick<JadeQdrantClient, 'search'> = {
 			async search() {
 				return [];
 			},
 		};
 		const retriever = new QdrantHeuristicRetriever({
 			embeddingClient,
-			qdrant: qdrant as UdiaQdrantClient,
+			qdrant: qdrant as JadeQdrantClient,
 		});
 
 		const matches = await retriever.retrieve('   \n\t', [], DEFAULT_RAG_CONFIG);

@@ -6,7 +6,7 @@ import {
 	SonarCloudAuthService,
 	SonarRulesIngestionService,
 } from '../services/setup';
-import type { EmbeddingClient, UdiaQdrantClient } from '../services/rag';
+import type { EmbeddingClient, JadeQdrantClient } from '../services/rag';
 
 type MutableMap = Map<string, unknown>;
 
@@ -53,10 +53,10 @@ suite('SetupStateService', () => {
 		assert.strictEqual(await service.getSonarToken(), undefined);
 
 		await service.setSonarToken('squ_token_xyz');
-		await service.setSonarOrganization('udia-org');
+		await service.setSonarOrganization('jade-org');
 
 		assert.strictEqual(await service.getSonarToken(), 'squ_token_xyz');
-		assert.strictEqual(await service.getSonarOrganization(), 'udia-org');
+		assert.strictEqual(await service.getSonarOrganization(), 'jade-org');
 	});
 
 	test('markComplete + reset toggle the global state flag and clear secrets', async () => {
@@ -192,7 +192,7 @@ suite('SonarRulesIngestionService', () => {
 		};
 
 		const upserts: Array<{ id: string | number; vector: number[] }> = [];
-		const qdrant: Pick<UdiaQdrantClient, 'ensureCollection' | 'upsert'> = {
+		const qdrant: Pick<JadeQdrantClient, 'ensureCollection' | 'upsert'> = {
 			async ensureCollection() {
 				return;
 			},
@@ -205,7 +205,7 @@ suite('SonarRulesIngestionService', () => {
 
 		const service = new SonarRulesIngestionService({
 			embedder,
-			qdrant: qdrant as UdiaQdrantClient,
+			qdrant: qdrant as JadeQdrantClient,
 			fetchImpl,
 		});
 

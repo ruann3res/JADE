@@ -17,7 +17,7 @@ export {
 } from './retrievers/compositeHeuristicRetriever.service';
 export { OllamaEmbeddingClient } from './clients/ollamaEmbedding.client';
 export type { EmbeddingClient, OllamaEmbeddingConfig } from './clients/ollamaEmbedding.client';
-export { UdiaQdrantClient } from './clients/qdrant.client';
+export { JadeQdrantClient } from './clients/qdrant.client';
 export type { QdrantClientConfig, QdrantRulePayload, QdrantSearchHit } from './clients/qdrant.client';
 export type {
 	FormattedRagContext,

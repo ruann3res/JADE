@@ -15,7 +15,7 @@ export type RagRuntimeConfig = {
 
 export class RagConfigService {
 	read(): RagRuntimeConfig {
-		const config = vscode.workspace.getConfiguration('udia');
+		const config = vscode.workspace.getConfiguration('jade');
 		const qdrantUrl = String(config.get('rag.qdrant.url') ?? 'http://localhost:6333');
 		const embeddingModel = String(config.get('rag.embedding.model') ?? 'nomic-embed-text');
 

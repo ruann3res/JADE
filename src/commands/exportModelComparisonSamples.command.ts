@@ -11,7 +11,7 @@ export async function exportModelComparisonSamplesCommand(input: {
 }): Promise<void> {
 	const workspaceRoot = resolveWorkspaceRoot();
 	if (!workspaceRoot) {
-		vscode.window.showWarningMessage('Open a workspace folder before exporting UDIA model comparison samples.');
+		vscode.window.showWarningMessage('Open a workspace folder before exporting JADE model comparison samples.');
 		return;
 	}
 
@@ -19,7 +19,7 @@ export async function exportModelComparisonSamplesCommand(input: {
 	const sourceSamples = path.join(extensionRoot, SAMPLES_SOURCE_DIRECTORY);
 
 	if (!(await exists(sourceSamples))) {
-		const message = `UDIA: samples directory not found at ${sourceSamples}. Cannot export.`;
+		const message = `JADE: samples directory not found at ${sourceSamples}. Cannot export.`;
 		input.outputChannel.appendLine(`[Model comparison] ${message}`);
 		vscode.window.showErrorMessage(message);
 		return;
@@ -30,7 +30,7 @@ export async function exportModelComparisonSamplesCommand(input: {
 	await fs.cp(sourceSamples, path.join(targetRoot, SAMPLES_SOURCE_DIRECTORY), { recursive: true });
 
 	input.outputChannel.appendLine(`[Model comparison] Exported official samples to ${targetRoot}`);
-	vscode.window.showInformationMessage(`UDIA: model comparison samples exported to ${targetRoot}`);
+	vscode.window.showInformationMessage(`JADE: model comparison samples exported to ${targetRoot}`);
 }
 
 function resolveWorkspaceRoot(): string | undefined {

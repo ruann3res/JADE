@@ -1,9 +1,9 @@
-import { udiaLog } from '../../outputChannel';
+import { jadeLog } from '../../outputChannel';
 import type { OllamaRuntimeConfig } from '../config/ollamaConfig.service';
 import type { RagRuntimeConfig } from '../config/ragConfig.service';
 import type { SetupStateService } from '../setup/setupState.service';
 import { OllamaEmbeddingClient } from './clients/ollamaEmbedding.client';
-import { UdiaQdrantClient } from './clients/qdrant.client';
+import { JadeQdrantClient } from './clients/qdrant.client';
 import { LexicalHeuristicRetriever } from './lexicalHeuristicRetriever.service';
 import { RagContextService } from './ragContext.service';
 import { CompositeHeuristicRetriever } from './retrievers/compositeHeuristicRetriever.service';
@@ -18,7 +18,7 @@ export type CreateRagContextServiceInput = {
 /**
  * Builds the production `RagContextService`.
  *
- * The Qdrant-backed retriever is only enabled when the user has run `UDIA: Setup`
+ * The Qdrant-backed retriever is only enabled when the user has run `JADE: Setup`
  * (`SetupStateService.isComplete()`). Without setup, callers transparently get the
  * embedded lexical retriever — no network calls, no surprises.
  *
@@ -39,7 +39,7 @@ export function createRagContextService(input: CreateRagContextServiceInput): Ra
 		timeoutMs: Math.min(input.ollamaConfig.timeoutMs, 60_000),
 	});
 
-	const qdrantClient = new UdiaQdrantClient({
+	const qdrantClient = new JadeQdrantClient({
 		url: input.ragConfig.qdrantUrl,
 		collection: input.ragConfig.qdrantCollection,
 		vectorSize: 0,
@@ -50,7 +50,7 @@ export function createRagContextService(input: CreateRagContextServiceInput): Ra
 		qdrant: qdrantClient,
 		onSearchDebug: ({ hitCount, kept, topScore, minScore, topIds }) => {
 			const top = topScore !== null ? topScore.toFixed(3) : 'n/a';
-			udiaLog(
+			jadeLog(
 				`RAG[qdrant]: hits=${hitCount}, kept=${kept}, top=${top} (minScore=${minScore}), candidates=${topIds.join(', ') || '-'}`,
 			);
 		},
@@ -61,7 +61,7 @@ export function createRagContextService(input: CreateRagContextServiceInput): Ra
 			primary,
 			fallback: lexical,
 			onPrimaryFailure: ({ primary: primaryName, fallback, error }) => {
-				udiaLog(`RAG: ${primaryName} failed (${error.message}); using ${fallback} fallback.`);
+				jadeLog(`RAG: ${primaryName} failed (${error.message}); using ${fallback} fallback.`);
 			},
 		}),
 	});

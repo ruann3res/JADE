@@ -65,6 +65,9 @@ Applicable editor fix (optional):
 - When you can indicate a concrete, safe change to \`<code>\`, you may add optional structured fix fields to the same suggestion object:
   - \`fixKind\`: \`"replaceLine"\` with \`newLineText\`
   - or \`fixKind\`: \`"replaceRange"\` with \`startLine\`, \`startColumn\`, \`endLine\`, \`endColumn\`, and \`newText\`
+- The replacement text must be raw Java source code only. Do not put prose, explanations, markdown, or comment-only advice in \`newLineText\` or \`newText\`.
+- Preserve the original indentation and Java structure. Never replace a method/class/control declaration, opening brace, or closing brace with a comment or standalone note.
+- For null-return findings, only provide a fix when you can replace the actual \`return null;\` statement with a meaningful Java expression or replace the complete method body safely. Do not replace the method signature with documentation or advice.
 - Omit these fields if there is no minimally safe patch or if only textual guidance in \`detail\` is possible.
 </requirements>
 

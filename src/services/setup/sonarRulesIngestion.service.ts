@@ -1,6 +1,6 @@
 import type { FeedbackCategory } from '../../entities/feedback';
 import type { EmbeddingClient } from '../rag/clients/ollamaEmbedding.client';
-import type { QdrantRulePayload, UdiaQdrantClient } from '../rag/clients/qdrant.client';
+import type { QdrantRulePayload, JadeQdrantClient } from '../rag/clients/qdrant.client';
 
 export type SonarRulesIngestionInput = {
 	readonly sonarUrl: string;
@@ -27,7 +27,7 @@ export type SonarRulesIngestionResult = {
 
 export type SonarRulesIngestionDependencies = {
 	embedder: EmbeddingClient;
-	qdrant: UdiaQdrantClient;
+	qdrant: JadeQdrantClient;
 	fetchImpl?: typeof fetch;
 };
 
@@ -59,7 +59,7 @@ const DEFAULTS = {
  */
 export class SonarRulesIngestionService {
 	private readonly embedder: EmbeddingClient;
-	private readonly qdrant: UdiaQdrantClient;
+	private readonly qdrant: JadeQdrantClient;
 	private readonly fetchImpl: typeof fetch;
 
 	constructor(deps: SonarRulesIngestionDependencies) {

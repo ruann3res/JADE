@@ -8,6 +8,7 @@ import { FileSystemResultExporter } from '../services/modelComparison/resultExpo
 import { FileSampleRepository } from '../services/modelComparison/sampleRepository.service';
 import { createRagContextService } from '../services/rag';
 import { SetupStateService } from '../services/setup';
+import { ModelComparisonPanelService } from '../services/webview/modelComparisonPanel.service';
 
 export async function runModelComparisonCommand(input: {
 	context: vscode.ExtensionContext;
@@ -15,7 +16,7 @@ export async function runModelComparisonCommand(input: {
 }): Promise<void> {
 	const workspaceRoot = resolveWorkspaceRoot();
 	if (!workspaceRoot) {
-		vscode.window.showWarningMessage('Open a workspace folder before running the UDIA model comparison.');
+		vscode.window.showWarningMessage('Open a workspace folder before running the JADE model comparison.');
 		return;
 	}
 
@@ -32,7 +33,7 @@ export async function runModelComparisonCommand(input: {
 	await vscode.window.withProgress(
 		{
 			location: vscode.ProgressLocation.Notification,
-			title: 'UDIA: model comparison',
+			title: 'JADE: model comparison',
 			cancellable: false,
 		},
 		async (progress) => {
@@ -50,8 +51,11 @@ export async function runModelComparisonCommand(input: {
 			for (const artifact of output.artifacts) {
 				input.outputChannel.appendLine(`[Model comparison] ${artifact.format.toUpperCase()}: ${artifact.path}`);
 			}
+			const panelService = new ModelComparisonPanelService();
+			const panel = panelService.create(input.context);
+			panelService.fill(panel, output.result);
 			vscode.window.showInformationMessage(
-				`UDIA: model comparison complete. Results saved to ${workspaceRoot}/model-comparison-results/${output.result.runId}.csv`,
+				`JADE: model comparison complete. Results saved to ${workspaceRoot}/model-comparison-results/${output.result.runId}.csv`,
 			);
 		},
 	);

@@ -11,7 +11,7 @@ export async function selectOllamaModelCommand(): Promise<void> {
 	}));
 
 	const picked = await vscode.window.showQuickPick(presetItems, {
-		title: 'UDIA: Ollama model',
+		title: 'JADE: Ollama model',
 		placeHolder: 'Choose the model used for analysis',
 	});
 
@@ -19,7 +19,7 @@ export async function selectOllamaModelCommand(): Promise<void> {
 		return;
 	}
 
-	const config = vscode.workspace.getConfiguration('udia');
+	const config = vscode.workspace.getConfiguration('jade');
 	await config.update('ollama.model', picked.pickId, vscode.ConfigurationTarget.Global);
-	vscode.window.showInformationMessage(`UDIA: active Ollama model — ${picked.pickId}`);
+	vscode.window.showInformationMessage(`JADE: active Ollama model — ${picked.pickId}`);
 }

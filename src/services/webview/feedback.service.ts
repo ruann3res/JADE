@@ -2,7 +2,7 @@ import * as fs from 'fs/promises';
 import * as vscode from 'vscode';
 import type { FeedbackRecord } from '../../entities/feedback';
 
-const FILE_NAME = 'udia-feedback.json';
+const FILE_NAME = 'jade-feedback.json';
 
 async function feedbackUri(): Promise<vscode.Uri | undefined> {
 	const folder = vscode.workspace.workspaceFolders?.[0];

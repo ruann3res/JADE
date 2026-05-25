@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import type { AiStructuredFix, AiSuggestionParsed } from '../../entities/aiSuggestion';
 import type { FeedbackCategory } from '../../entities/feedback';
+import { JADE_AI_FIX_DATA_KEY } from '../vscode/jadeFixWorkspaceEdit.service';
 
-export const UDIA_AI_DIAGNOSTIC_SOURCE = 'UDIA AI';
+export const JADE_AI_DIAGNOSTIC_SOURCE = 'JADE AI';
 export const MAX_AI_DIAGNOSTICS_PER_FILE = 25;
 
 type DiagnosticWithData = vscode.Diagnostic & { data?: Record<string, unknown> };
@@ -68,7 +69,7 @@ export class AiDiagnosticMapperService {
 				`[AI] ${suggestion.summary || suggestion.detail}`,
 				aiDiagnosticSeverityForCategory(suggestion.category),
 			);
-			diagnostic.source = UDIA_AI_DIAGNOSTIC_SOURCE;
+			diagnostic.source = JADE_AI_DIAGNOSTIC_SOURCE;
 			diagnostic.code = `ai.${suggestion.category}`;
 			diagnostic.relatedInformation = [
 				new vscode.DiagnosticRelatedInformation(
@@ -114,5 +115,5 @@ function rangeForSuggestionLine(document: vscode.TextDocument, line: number): vs
 function setFixOnDiagnostic(diagnostic: vscode.Diagnostic, fix: AiStructuredFix): void {
 	const target = diagnostic as DiagnosticWithData;
 	const base = target.data && typeof target.data === 'object' && !Array.isArray(target.data) ? target.data : {};
-	target.data = { ...base, udiaAiFix: fix };
+	target.data = { ...base, [JADE_AI_FIX_DATA_KEY]: fix };
 }

@@ -117,7 +117,7 @@ export async function ollamaChat(
 	} catch (error) {
 		const chain = collectErrorChain(error);
 		throw new Error(
-			`Ollama (${url}): ${chain || 'fetch failed'}\n\nEnsure the Ollama server is reachable at ${normalizedBase} and adjust udia.ollama.baseUrl or udia.ollama.requestTimeoutMs if needed.`,
+			`Ollama (${url}): ${chain || 'fetch failed'}\n\nEnsure the Ollama server is reachable at ${normalizedBase} and adjust jade.ollama.baseUrl or jade.ollama.requestTimeoutMs if needed.`,
 		);
 	}
 

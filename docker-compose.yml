@@ -1,19 +1,19 @@
 services:
   qdrant:
     image: qdrant/qdrant:latest
-    container_name: udia-qdrant
+    container_name: jade-qdrant
     ports:
       - "6333:6333"
       - "6334:6334"
     volumes:
       - qdrant_storage:/qdrant/storage
     networks:
-      - udia-network
+      - jade-network
     restart: unless-stopped
 
 volumes:
   qdrant_storage:
 
 networks:
-  udia-network:
+  jade-network:
     driver: bridge

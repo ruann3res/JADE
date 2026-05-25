@@ -4,7 +4,7 @@ import type { AiBatchAnalysisResult, AiBatchPromptDebug, AiBatchStats } from '..
 import type { AiDiagnosticMappingResult } from '../ai/aiDiagnosticMapper.service';
 import type { AiSuggestionFilterResult } from '../ai/aiSuggestionFilter.service';
 import { JAVA_ANALYSIS_PROMPT_LOG_LABEL } from '../ai/prompts/javaAnalysisPrompt';
-import { udiaLogSection } from '../../outputChannel';
+import { jadeLogSection } from '../../outputChannel';
 
 type PromptLoadDebug = AiBatchPromptDebug & {
 	promptSource: string;
@@ -19,6 +19,7 @@ type ReportStats = {
 	aiDiagnosticCount: number;
 	aiDiagnosticDroppedDuplicate: number;
 	aiDiagnosticDroppedLimit: number;
+	structuredFixCount: number;
 	batchStats: AiBatchStats[];
 	structuredJsonEnvelope: boolean;
 };
@@ -50,6 +51,7 @@ export class AnalysisReportService {
 				aiDiagnosticCount: input.aiDiagnostic.diagnostics.length,
 				aiDiagnosticDroppedDuplicate: input.aiDiagnostic.droppedByDuplicate,
 				aiDiagnosticDroppedLimit: input.aiDiagnostic.droppedByLimit,
+				structuredFixCount: input.aiDiagnostic.suggestions.filter((suggestion) => suggestion.fix).length,
 				batchStats: input.batchResult.batchStats,
 				structuredJsonEnvelope: input.batchResult.batchStats.some((batch) => batch.structuredJsonEnvelope === true),
 			},
@@ -70,13 +72,13 @@ export class AnalysisReportService {
 		const fileLabel = document.fileName.split(/[/\\]/).pop() ?? document.fileName;
 
 		outputChannel.clear();
-		udiaLogSection('UDIA REPORT');
+		jadeLogSection('JADE REPORT');
 		outputChannel.appendLine(`When: ${new Date().toISOString()}`);
 		outputChannel.appendLine(`File: ${fileLabel}`);
 		outputChannel.appendLine(`Ollama model: ${modelId}`);
 		outputChannel.appendLine('');
 
-		udiaLogSection('Overview');
+		jadeLogSection('Overview');
 		outputChannel.appendLine('RAG: local lexical heuristics (always on, no configuration).');
 		const iaOverview =
 			stats.parsedCount === 0
@@ -89,11 +91,12 @@ export class AnalysisReportService {
 		outputChannel.appendLine(
 			`AI diagnostics: ${stats.aiDiagnosticCount}; duplicates=${stats.aiDiagnosticDroppedDuplicate}, limit=${stats.aiDiagnosticDroppedLimit}.`,
 		);
+		outputChannel.appendLine(`AI structured fixes available as Quick Fix: ${stats.structuredFixCount}.`);
 		outputChannel.appendLine(
 			`AI batches: ${stats.batchStats.length} executed; failures=${stats.batchStats.filter((batch) => batch.error).length}.`,
 		);
 
-		udiaLogSection('Prompt Debug');
+		jadeLogSection('Prompt Debug');
 		outputChannel.appendLine(`System prompt source: ${promptDebug.promptSource}`);
 		outputChannel.appendLine(
 			`Message [0]: role=${promptDebug.systemRole}, size=${promptDebug.systemCharLength} chars`,
@@ -104,13 +107,13 @@ export class AnalysisReportService {
 			`User messages by batch: first=${promptDebug.firstUserCharLength} chars, largest=${promptDebug.maxUserCharLength} chars, total=${promptDebug.totalUserCharLength} chars`,
 		);
 
-		udiaLogSection('AI Batches');
+		jadeLogSection('AI Batches');
 		for (const batch of stats.batchStats) {
 			const base = `Batch ${batch.batchNumber}/${batch.totalBatches}: lines=${batch.lineStart}-${batch.lineEnd}, alerts=${batch.alertCount}, parsed=${batch.parsedCount}, userChars=${batch.userCharLength}`;
 			outputChannel.appendLine(batch.error ? `${base}, error=${batch.error}` : base);
 		}
 
-		udiaLogSection('RAG Context');
+		jadeLogSection('RAG Context');
 		for (const batch of stats.batchStats) {
 			const ids = batch.ragRetrievedIds ?? [];
 			const truncated = batch.ragTruncated === true ? 'yes' : 'no';
@@ -121,7 +124,7 @@ export class AnalysisReportService {
 			);
 		}
 
-		udiaLogSection('AI Response');
+		jadeLogSection('AI Response');
 		outputChannel.appendLine(aiBody);
 		outputChannel.show(true);
 	}

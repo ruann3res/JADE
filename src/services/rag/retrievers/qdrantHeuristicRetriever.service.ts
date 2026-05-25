@@ -1,6 +1,6 @@
 import type { FeedbackCategory } from '../../../entities/feedback';
 import type { EmbeddingClient } from '../clients/ollamaEmbedding.client';
-import type { QdrantRulePayload, UdiaQdrantClient } from '../clients/qdrant.client';
+import type { QdrantRulePayload, JadeQdrantClient } from '../clients/qdrant.client';
 import type {
 	HeuristicMatch,
 	HeuristicRetriever,
@@ -25,7 +25,7 @@ export type QdrantSearchDebug = {
 
 export type QdrantHeuristicRetrieverDependencies = {
 	embeddingClient: EmbeddingClient;
-	qdrant: UdiaQdrantClient;
+	qdrant: JadeQdrantClient;
 	/** Max characters of source sent to the embedder per batch. */
 	maxEmbeddingChars?: number;
 	/** Optional callback for diagnostics. Receives raw vs kept counts per query. */
@@ -36,7 +36,7 @@ export class QdrantHeuristicRetriever implements HeuristicRetriever {
 	readonly name = 'qdrant';
 
 	private readonly embeddingClient: EmbeddingClient;
-	private readonly qdrant: UdiaQdrantClient;
+	private readonly qdrant: JadeQdrantClient;
 	private readonly maxEmbeddingChars: number;
 	private readonly onSearchDebug?: (info: QdrantSearchDebug) => void;
 

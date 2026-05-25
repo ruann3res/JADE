@@ -63,16 +63,22 @@ export type ModelComparisonMetrics = {
 	rawSuggestionCount: number;
 	validSuggestionCount: number;
 	invalidSuggestionCount: number;
+	expectedFindingCount: number | null;
+	matchedExpectedCount: number | null;
 	usefulSuggestionCount: number;
 	averageFeedbackRating: number;
 	falsePositiveCount: number;
 	falsePositiveRate: number;
+	precision: number | null;
+	recall: number | null;
+	f1Score: number | null;
 };
 
 export type ModelComparisonCaseResult = {
 	modelId: string;
 	modelLabel: string;
 	file: string;
+	evaluationMode: ModelComparisonSample['evaluationMode'];
 	metrics: ModelComparisonMetrics;
 	matches: FindingMatch[];
 	batchStats: AiBatchStats[];
@@ -84,13 +90,20 @@ export type ModelComparisonSummaryRow = {
 	modelId: string;
 	modelLabel: string;
 	file: string;
+	evaluationMode: ModelComparisonSample['evaluationMode'];
 	responseTimeMs: number;
 	rawSuggestionCount: number;
 	validSuggestionCount: number;
+	invalidSuggestionCount: number;
+	expectedFindingCount: number | null;
+	matchedExpectedCount: number | null;
 	usefulSuggestionCount: number;
 	averageFeedbackRating: number;
 	falsePositiveCount: number;
 	falsePositiveRate: number;
+	precision: number | null;
+	recall: number | null;
+	f1Score: number | null;
 };
 
 export type ModelComparisonRunResult = {

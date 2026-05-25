@@ -13,7 +13,7 @@ export type OllamaRuntimeConfig = {
 
 export class OllamaConfigService {
 	read(): OllamaRuntimeConfig {
-		const config = vscode.workspace.getConfiguration('udia');
+		const config = vscode.workspace.getConfiguration('jade');
 		const baseUrl = String(config.get('ollama.baseUrl') ?? 'http://127.0.0.1:11434');
 		const requestTimeoutMs = Number(config.get('ollama.requestTimeoutMs'));
 		const modelSetting = String(config.get('ollama.model') ?? '');

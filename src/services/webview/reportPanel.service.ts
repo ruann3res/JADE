@@ -21,8 +21,8 @@ export type FeedbackSavePayload = {
 export class ReportPanelService {
 	create(context: vscode.ExtensionContext): vscode.WebviewPanel {
 		const panel = vscode.window.createWebviewPanel(
-			'udiaReport',
-			'UDIA — Report and feedback',
+			'jadeReport',
+			'JADE — Report and feedback',
 			vscode.ViewColumn.Beside,
 			{ enableScripts: true, retainContextWhenHidden: true },
 		);
@@ -114,7 +114,7 @@ function buildHtml(
 	meta: { model: string; fileName: string; reportId: string },
 ): string {
 	const data = JSON.stringify({ suggestions, meta }).replace(/<\//g, '<\\/');
-	const escapedTitle = escapeHtml('UDIA — report and review');
+	const escapedTitle = escapeHtml('JADE — report and review');
 	return `<!DOCTYPE html>
 <html lang="en">
 <head>

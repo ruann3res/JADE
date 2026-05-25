@@ -29,7 +29,7 @@ export type QdrantClientConfig = {
  * Slim adapter over `@qdrant/js-client-rest`.
  * Uses a dynamic import because the package is ESM-only while the extension is bundled as CJS.
  */
-export class UdiaQdrantClient {
+export class JadeQdrantClient {
 	private clientPromise: Promise<QdrantClient> | null = null;
 
 	constructor(private readonly config: QdrantClientConfig) {}

@@ -1,105 +1,140 @@
 {
-  "name": "UDIA",
-  "displayName": "UDIA",
-  "description": "",
+  "name": "jade-static-analysis-repair",
+  "displayName": "JADE — Java Static Analysis Repair",
+  "publisher": "ruann3res-iftm",
+  "description": "Analyze and repair Java static analysis findings with local LLMs, RAG context, traceable reports, and structured feedback.",
   "version": "0.0.1",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ruann3res/pluginAI.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ruann3res/pluginAI/issues"
+  },
+  "homepage": "https://github.com/ruann3res/pluginAI#readme",
   "engines": {
     "vscode": "^1.118.0"
   },
   "categories": [
     "Other"
   ],
+  "keywords": [
+    "java",
+    "static analysis",
+    "code quality",
+    "ai",
+    "ollama",
+    "llm",
+    "rag",
+    "quick fix"
+  ],
   "activationEvents": [
-    "onCommand:UDIA.helloWorld",
-    "onCommand:UDIA.analyzeFile",
-    "onCommand:UDIA.selectOllamaModel",
-    "onCommand:UDIA.runModelComparison",
-    "onCommand:UDIA.runOpenFileModelComparison",
-    "onCommand:UDIA.exportModelComparisonSamples",
-    "onCommand:UDIA.exportFeedback",
-    "onCommand:UDIA.setup",
-    "onCommand:UDIA.resetSetup"
+    "onCommand:JADE.helloWorld",
+    "onCommand:JADE.analyzeFile",
+    "onCommand:JADE.selectOllamaModel",
+    "onCommand:JADE.runModelComparison",
+    "onCommand:JADE.runOpenFileModelComparison",
+    "onCommand:JADE.exportModelComparisonSamples",
+    "onCommand:JADE.exportFeedback",
+    "onCommand:JADE.generateFix",
+    "onCommand:JADE.openLatestAiReport",
+    "onCommand:JADE.openLatestModelComparisonReport",
+    "onCommand:JADE.setup",
+    "onCommand:JADE.resetSetup"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "configuration": {
-      "title": "UDIA",
+      "title": "JADE",
       "properties": {
-        "udia.ollama.baseUrl": {
+        "jade.ollama.baseUrl": {
           "type": "string",
           "default": "http://127.0.0.1:11434",
           "description": "Base URL for the Ollama API."
         },
-        "udia.ollama.requestTimeoutMs": {
+        "jade.ollama.requestTimeoutMs": {
           "type": "number",
           "default": 900000,
           "description": "Timeout in milliseconds for each Ollama request."
         },
-        "udia.ollama.model": {
+        "jade.ollama.model": {
           "type": "string",
           "default": "deepseek-coder:6.7b",
-          "description": "Active Ollama model. Use the command UDIA: Select Ollama model to choose one of the supported models."
+          "description": "Active Ollama model. Use the command JADE: Select Ollama model to choose one of the supported models."
         },
-        "udia.ai.batchMaxLines": {
+        "jade.ai.batchMaxLines": {
           "type": "number",
           "default": 180,
           "minimum": 1,
           "description": "Maximum number of Java lines sent per batch to the AI."
         },
-        "udia.ai.batchOverlapLines": {
+        "jade.ai.batchOverlapLines": {
           "type": "number",
           "default": 20,
           "minimum": 0,
           "description": "Number of overlapping lines between consecutive batches for context."
         },
-        "udia.rag.qdrant.url": {
+        "jade.rag.qdrant.url": {
           "type": "string",
           "default": "http://localhost:6333",
-          "description": "Qdrant HTTP URL spun up by `UDIA: Setup`. Override only if Docker exposes Qdrant on a different port."
+          "description": "Qdrant HTTP URL spun up by `JADE: Setup`. Override only if Docker exposes Qdrant on a different port."
         },
-        "udia.rag.embedding.model": {
+        "jade.rag.embedding.model": {
           "type": "string",
           "default": "nomic-embed-text",
-          "description": "Ollama embedding model used by the RAG retriever. Pulled automatically by `UDIA: Setup`."
+          "description": "Ollama embedding model used by the RAG retriever. Pulled automatically by `JADE: Setup`."
         }
       }
     },
     "commands": [
       {
-        "command": "UDIA.helloWorld",
+        "command": "JADE.helloWorld",
         "title": "Hello World"
       },
       {
-        "command": "UDIA.analyzeFile",
-        "title": "UDIA: Analyze File"
+        "command": "JADE.analyzeFile",
+        "title": "JADE: Analyze File"
       },
       {
-        "command": "UDIA.selectOllamaModel",
-        "title": "UDIA: Select Ollama model"
+        "command": "JADE.selectOllamaModel",
+        "title": "JADE: Select Ollama model"
       },
       {
-        "command": "UDIA.runModelComparison",
-        "title": "UDIA: Run Model Comparison"
+        "command": "JADE.runModelComparison",
+        "title": "JADE: Run Model Comparison"
       },
       {
-        "command": "UDIA.runOpenFileModelComparison",
-        "title": "UDIA: Compare Models on Open Java File"
+        "command": "JADE.runOpenFileModelComparison",
+        "title": "JADE: Compare Models on Open Java File"
       },
       {
-        "command": "UDIA.exportModelComparisonSamples",
-        "title": "UDIA: Export Model Comparison Samples"
+        "command": "JADE.exportModelComparisonSamples",
+        "title": "JADE: Export Model Comparison Samples"
       },
       {
-        "command": "UDIA.exportFeedback",
-        "title": "UDIA: Export Feedback"
+        "command": "JADE.exportFeedback",
+        "title": "JADE: Export Feedback"
       },
       {
-        "command": "UDIA.setup",
-        "title": "UDIA: Setup"
+        "command": "JADE.generateFix",
+        "title": "JADE: Generate Fix with AI"
       },
       {
-        "command": "UDIA.resetSetup",
-        "title": "UDIA: Reset Setup"
+        "command": "JADE.openLatestAiReport",
+        "title": "JADE: Open Latest AI Report"
+      },
+      {
+        "command": "JADE.openLatestModelComparisonReport",
+        "title": "JADE: Open Latest Model Comparison Report"
+      },
+      {
+        "command": "JADE.setup",
+        "title": "JADE: Setup"
+      },
+      {
+        "command": "JADE.resetSetup",
+        "title": "JADE: Reset Setup"
       }
     ]
   },
@@ -115,7 +150,8 @@
     "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "vsix": "pnpm exec vsce package --no-dependencies --allow-missing-repository"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
@@ -123,6 +159,7 @@
     "@types/vscode": "^1.118.0",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.9.1",
     "esbuild": "^0.27.3",
     "eslint": "^9.39.3",
     "npm-run-all": "^4.1.5",

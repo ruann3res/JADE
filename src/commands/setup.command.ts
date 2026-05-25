@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
-import { udiaLog, udiaLogError, udiaLogSection, udiaShowOutput } from '../outputChannel';
+import { jadeLog, jadeLogError, jadeLogSection, jadeShowOutput } from '../outputChannel';
 import { OllamaConfigService } from '../services/config/ollamaConfig.service';
 import { RagConfigService } from '../services/config/ragConfig.service';
 import { OllamaEmbeddingClient } from '../services/rag/clients/ollamaEmbedding.client';
-import { UdiaQdrantClient } from '../services/rag/clients/qdrant.client';
+import { JadeQdrantClient } from '../services/rag/clients/qdrant.client';
 import {
 	DockerComposeService,
 	OllamaModelService,
@@ -21,14 +21,14 @@ const SONAR_ORGS_PAGE = 'https://sonarcloud.io/account/organizations';
 export async function runSetupCommand(input: {
 	context: vscode.ExtensionContext;
 }): Promise<void> {
-	udiaShowOutput(true);
-	udiaLogSection('UDIA: Setup');
+	jadeShowOutput(true);
+	jadeLogSection('JADE: Setup');
 
 	const setupState = new SetupStateService(input.context);
 
 	if (setupState.isComplete()) {
 		const choice = await vscode.window.showInformationMessage(
-			'UDIA setup already completed. Do you want to re-run it (re-download rules)?',
+			'JADE setup already completed. Do you want to re-run it (re-download rules)?',
 			{ modal: true },
 			'Re-run setup',
 			'Reset setup',
@@ -36,7 +36,7 @@ export async function runSetupCommand(input: {
 		);
 		if (choice === 'Reset setup') {
 			await setupState.reset();
-			vscode.window.showInformationMessage('UDIA: setup reset. Analysis will use the embedded lexical RAG.');
+			vscode.window.showInformationMessage('JADE: setup reset. Analysis will use the embedded lexical RAG.');
 			return;
 		}
 		if (choice !== 'Re-run setup') {
@@ -67,7 +67,7 @@ export async function runSetupCommand(input: {
 	}
 
 	const tokenInput = await vscode.window.showInputBox({
-		title: 'UDIA: SonarCloud token',
+		title: 'JADE: SonarCloud token',
 		prompt: 'Paste your SonarCloud user token (stored securely in VS Code SecretStorage).',
 		password: true,
 		ignoreFocusOut: true,
@@ -84,7 +84,7 @@ export async function runSetupCommand(input: {
 		return;
 	}
 	const organization = credentials.organization;
-	udiaLog(
+	jadeLog(
 		`[setup] Sonar credentials validated (org=${organization ?? 'public'}, visible rules=${credentials.ruleCount}).`,
 	);
 
@@ -96,7 +96,7 @@ export async function runSetupCommand(input: {
 		model: ragConfig.embeddingModel,
 		timeoutMs: 60_000,
 	});
-	const qdrant = new UdiaQdrantClient({
+	const qdrant = new JadeQdrantClient({
 		url: ragConfig.qdrantUrl,
 		collection: ragConfig.qdrantCollection,
 		vectorSize: 768,
@@ -109,14 +109,14 @@ export async function runSetupCommand(input: {
 		ollamaModel,
 		sonarAuth,
 		ingestion,
-		log: (message) => udiaLog(message),
+		log: (message) => jadeLog(message),
 	});
 
 	try {
 		await vscode.window.withProgress(
 			{
 				location: vscode.ProgressLocation.Notification,
-				title: 'UDIA: configuring RAG (Docker + Sonar + Qdrant)',
+				title: 'JADE: configuring RAG (Docker + Sonar + Qdrant)',
 				cancellable: false,
 			},
 			async (progress) => {
@@ -144,14 +144,14 @@ export async function runSetupCommand(input: {
 					},
 				);
 				vscode.window.showInformationMessage(
-					`UDIA setup complete: ${outcome.ingestion.ruleCount} Sonar rules ingested into ${ragConfig.qdrantCollection}.`,
+					`JADE setup complete: ${outcome.ingestion.ruleCount} Sonar rules ingested into ${ragConfig.qdrantCollection}.`,
 				);
 			},
 		);
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
-		udiaLogError(`UDIA setup failed: ${message}`);
-		vscode.window.showErrorMessage(`UDIA setup failed: ${message}`);
+		jadeLogError(`JADE setup failed: ${message}`);
+		vscode.window.showErrorMessage(`JADE setup failed: ${message}`);
 	}
 }
 
@@ -160,7 +160,7 @@ export async function resetSetupCommand(input: {
 }): Promise<void> {
 	const setupState = new SetupStateService(input.context);
 	const confirm = await vscode.window.showWarningMessage(
-		'Reset UDIA RAG setup? The extension will fall back to embedded lexical heuristics.',
+		'Reset JADE RAG setup? The extension will fall back to embedded lexical heuristics.',
 		{ modal: true },
 		'Reset',
 	);
@@ -168,12 +168,12 @@ export async function resetSetupCommand(input: {
 		return;
 	}
 	await setupState.reset();
-	vscode.window.showInformationMessage('UDIA RAG setup has been reset.');
+	vscode.window.showInformationMessage('JADE RAG setup has been reset.');
 }
 
 async function promptForSonarUrl(defaultUrl: string): Promise<string | undefined> {
 	return vscode.window.showInputBox({
-		title: 'UDIA: Sonar server URL',
+		title: 'JADE: Sonar server URL',
 		prompt: 'Use the default SonarCloud or point to a self-hosted SonarQube instance.',
 		value: defaultUrl,
 		ignoreFocusOut: true,
@@ -231,7 +231,7 @@ async function ensureValidSonarCredentials(args: {
 		}
 
 		const orgInput = await vscode.window.showInputBox({
-			title: 'UDIA: SonarCloud organization key',
+			title: 'JADE: SonarCloud organization key',
 			prompt: 'Copy the "Key" column from https://sonarcloud.io/account/organizations.',
 			value: organization,
 			ignoreFocusOut: true,

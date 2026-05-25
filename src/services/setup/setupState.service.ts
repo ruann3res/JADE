@@ -1,9 +1,9 @@
 import type * as vscode from 'vscode';
 
-const SECRET_SONAR_TOKEN = 'udia.sonar.token';
-const SECRET_SONAR_ORGANIZATION = 'udia.sonar.organization';
-const STATE_SETUP_COMPLETE = 'udia.rag.setupComplete';
-const STATE_METADATA = 'udia.rag.setupMetadata';
+const SECRET_SONAR_TOKEN = 'jade.sonar.token';
+const SECRET_SONAR_ORGANIZATION = 'jade.sonar.organization';
+const STATE_SETUP_COMPLETE = 'jade.rag.setupComplete';
+const STATE_METADATA = 'jade.rag.setupMetadata';
 
 export type RagSetupMetadata = {
 	ruleCount: number;

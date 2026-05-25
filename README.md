@@ -1,83 +1,239 @@
-# UDIA README
+# JADE
 
-This is the README for your extension "UDIA". After writing up a brief description, we recommend including the following sections.
+**JADE - Java Static Analysis Repair** is a VS Code extension for analyzing Java code and generating traceable repair suggestions with local LLMs.
 
-## Model comparison protocol
-
-UDIA includes an official reproducible benchmark battery for comparing Deepseek and Qwen through Ollama.
-
-- Run `UDIA: Run Model Comparison` to execute the fixed benchmark.
-- Results are written to the open workspace in `model-comparison-results/`.
-- Run `UDIA: Compare Models on Open Java File` to compare Deepseek and Qwen against the currently open Java file. These results are written to `model-comparison-results/open-file/`.
-- Run `UDIA: Export Model Comparison Samples` to copy the official Java samples, expected findings, and protocol document into the open workspace for inspection.
-
-The benchmark always reads the official samples packaged with the extension. Exporting samples is for auditability and documentation; it does not mutate the packaged benchmark battery.
-Open-file comparison has no fixed ground truth, so it records model outputs and response metrics without treating suggestions as academically validated false positives.
+JADE combines Java static-analysis heuristics, local models through Ollama, optional RAG context, AI execution reports, safe fix validation, model comparison, and structured user feedback.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+- Analyze Java files directly from VS Code.
+- Generate diagnostics for code smells, bugs, security issues, and duplication.
+- Ask a local LLM to generate structured quick fixes.
+- Validate generated patches before applying them to the editor.
+- Review suggestions in a report panel and save structured feedback.
+- Compare supported local models on fixed benchmark samples or on the open Java file.
+- Export reports for auditability and research.
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+- VS Code compatible with `^1.118.0`.
+- [Ollama](https://ollama.com/) running locally.
+- At least one supported model installed:
+
+```bash
+ollama pull deepseek-coder:6.7b
+```
+
+or:
+
+```bash
+ollama pull qwen2.5-coder:7b
+```
+
+Optional:
+
+- Docker, if you want to run `JADE: Setup` for Qdrant and SonarCloud-backed RAG.
+
+## Quick Start
+
+1. Start Ollama.
+2. Open a Java workspace in VS Code.
+3. Open a `.java` file.
+4. Run `JADE: Select Ollama model` and choose the active model.
+5. Run `JADE: Analyze File`.
+6. Review diagnostics in the editor and in the report panel.
+7. Use `JADE: Generate Fix with AI` on a selected JADE diagnostic when you want a repair suggestion.
+8. Save feedback in the report panel when a suggestion is useful, wrong, partial, or unclear.
+
+## Demo Sample
+
+For a short demo, use a sample like this:
+
+```java
+public class PresentationWorkingSample {
+
+    public void runHeavyProcess(int seed) {
+        System.out.println("inicio do processamento pesado");
+
+        try {
+            validateSeed(seed);
+        } catch (IllegalArgumentException ex) {
+        }
+
+        int result = calculateResult(seed);
+        System.out.println("resultado=" + result);
+    }
+
+    private int calculateResult(int seed) {
+        int result = seed;
+
+        for (int step = 1; step <= 41; step++) {
+            result += step;
+        }
+
+        return result;
+    }
+
+    private void validateSeed(int seed) {
+        if (seed < 0) {
+            throw new IllegalArgumentException("seed nao pode ser negativo");
+        }
+    }
+}
+```
+
+The expected issue is the empty `catch` block. It catches `IllegalArgumentException` but does not handle it, so validation failures can be silently swallowed and the method may continue as if nothing happened.
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `JADE: Analyze File` | Run AI-assisted static analysis on the current Java file. |
+| `JADE: Generate Fix with AI` | Generate and apply a validated repair for a JADE diagnostic. |
+| `JADE: Select Ollama model` | Choose the active local Ollama model. |
+| `JADE: Setup` | Configure optional Docker, Qdrant, SonarCloud, and RAG setup. |
+| `JADE: Reset Setup` | Reset RAG setup state and fall back to embedded heuristics. |
+| `JADE: Run Model Comparison` | Run the reproducible benchmark against supported models. |
+| `JADE: Compare Models on Open Java File` | Compare supported models on the currently open Java file. |
+| `JADE: Export Model Comparison Samples` | Export official benchmark samples to the workspace. |
+| `JADE: Open Latest AI Report` | Open the latest AI execution report. |
+| `JADE: Open Latest Model Comparison Report` | Open the latest model comparison report. |
+| `JADE: Export Feedback` | Open the external feedback form. |
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+| Setting | Description |
+|---------|-------------|
+| `jade.ollama.baseUrl` | Ollama API base URL. |
+| `jade.ollama.model` | Active Ollama model. |
+| `jade.ollama.requestTimeoutMs` | Request timeout in milliseconds. |
+| `jade.ai.batchMaxLines` | Maximum Java lines per AI batch. |
+| `jade.ai.batchOverlapLines` | Overlap between consecutive batches. |
+| `jade.rag.qdrant.url` | Qdrant URL used after setup. |
+| `jade.rag.embedding.model` | Ollama embedding model used for RAG retrieval. |
 
-For example:
+## Model Comparison Protocol
 
-This extension contributes the following settings:
+JADE includes a reproducible benchmark battery for comparing Deepseek and Qwen through Ollama.
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+- Run `JADE: Run Model Comparison` to execute the fixed benchmark.
+- Results are written to `model-comparison-results/` in the open workspace.
+- Run `JADE: Compare Models on Open Java File` to compare Deepseek and Qwen against the currently open Java file.
+- Open-file comparison has no fixed ground truth, so it records model outputs and response metrics without treating suggestions as academically validated false positives.
+- Run `JADE: Export Model Comparison Samples` to copy the official Java samples, expected findings, and protocol material into the open workspace for inspection.
 
-## Known Issues
+The benchmark always reads the official samples packaged with the extension. Exporting samples is for auditability and documentation; it does not mutate the packaged benchmark battery.
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+## Development
 
-## Release Notes
+Clone the project and enter the extension root:
 
-Users appreciate release notes as you update your extension.
+```bash
+cd /Users/ruanneres/www/person/project/plugin-ai/plugin/UDIA
+```
 
-### 1.0.0
+Install dependencies:
 
-Initial release of ...
+```bash
+pnpm install
+```
 
-### 1.0.1
+Run the full validation suite:
 
-Fixed issue #.
+```bash
+pnpm test
+```
 
-### 1.1.0
+Run individual checks:
 
-Added features X, Y, and Z.
+```bash
+pnpm run check-types
+pnpm run lint
+pnpm run compile
+```
 
----
+Run the extension in development mode:
 
-## Following extension guidelines
+1. Open the project in VS Code.
+2. Press `F5`.
+3. In the Extension Development Host window, open a Java file.
+4. Run `JADE: Analyze File` from the Command Palette.
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+## Build and Package
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+Create the production bundle:
 
-## Working with Markdown
+```bash
+pnpm run package
+```
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
+Create an installable `.vsix` package:
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+```bash
+pnpm run vsix
+```
 
-## For more information
+Install the generated `.vsix` locally:
 
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+```bash
+code --install-extension jade-static-analysis-repair-0.0.1.vsix
+```
 
-**Enjoy!**
+Adjust the file name if the version in `package.json` has changed.
+
+## Publish to the VS Code Marketplace
+
+Publishing uses Microsoft's `vsce` tool and a Visual Studio Marketplace publisher account.
+
+Prerequisites:
+
+- A Marketplace publisher matching the `publisher` field in `package.json`.
+- A Personal Access Token from Azure DevOps with `Marketplace: Manage` scope.
+- A passing local build and test run.
+
+Login once:
+
+```bash
+pnpm exec vsce login ruann3res-iftm
+```
+
+Build and test before publishing:
+
+```bash
+pnpm install
+pnpm test
+pnpm run package
+pnpm run vsix
+```
+
+Publish a patch release:
+
+```bash
+pnpm exec vsce publish patch --no-dependencies
+```
+
+Other release options:
+
+```bash
+pnpm exec vsce publish minor --no-dependencies
+pnpm exec vsce publish major --no-dependencies
+pnpm exec vsce publish 0.0.2 --no-dependencies
+```
+
+Manual publishing is also possible: generate the `.vsix` with `pnpm run vsix` and upload it from the Visual Studio Marketplace publisher management page.
+
+## Publishing Checklist
+
+Before publishing, confirm:
+
+- `pnpm test` passes.
+- `pnpm run vsix` creates a `.vsix` file.
+- `README.md` describes the extension clearly; this content appears on the Marketplace page.
+- `CHANGELOG.md` includes the release notes.
+- `LICENSE` is present.
+- `package.json` has the correct `name`, `displayName`, `description`, `publisher`, `version`, `repository`, and `keywords`.
+- `.vscodeignore` excludes development-only files but keeps runtime assets and packaged samples.
+
+## License
+
+MIT

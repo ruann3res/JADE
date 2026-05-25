@@ -12,6 +12,7 @@ import { FileSystemResultExporter } from '../services/modelComparison/resultExpo
 import { InMemorySampleRepository, sha256 } from '../services/modelComparison/sampleRepository.service';
 import { createRagContextService } from '../services/rag';
 import { SetupStateService } from '../services/setup';
+import { ModelComparisonPanelService } from '../services/webview/modelComparisonPanel.service';
 import { LanguageGuardService } from '../services/vscode/languageGuard.service';
 
 export async function runOpenFileModelComparisonCommand(input: {
@@ -21,13 +22,13 @@ export async function runOpenFileModelComparisonCommand(input: {
 }): Promise<void> {
 	const workspaceRoot = resolveWorkspaceRoot();
 	if (!workspaceRoot) {
-		vscode.window.showWarningMessage('Open a workspace folder before running the UDIA open-file model comparison.');
+		vscode.window.showWarningMessage('Open a workspace folder before running the JADE open-file model comparison.');
 		return;
 	}
 
 	const document = await resolveDocument(input.resource);
 	if (!document) {
-		vscode.window.showWarningMessage('Open a Java file before running the UDIA open-file model comparison.');
+		vscode.window.showWarningMessage('Open a Java file before running the JADE open-file model comparison.');
 		return;
 	}
 
@@ -51,7 +52,7 @@ export async function runOpenFileModelComparisonCommand(input: {
 	await vscode.window.withProgress(
 		{
 			location: vscode.ProgressLocation.Notification,
-			title: 'UDIA: open-file model comparison',
+			title: 'JADE: open-file model comparison',
 			cancellable: false,
 		},
 		async (progress) => {
@@ -71,8 +72,11 @@ export async function runOpenFileModelComparisonCommand(input: {
 					`[Open-file model comparison] ${artifact.format.toUpperCase()}: ${artifact.path}`,
 				);
 			}
+			const panelService = new ModelComparisonPanelService();
+			const panel = panelService.create(input.context);
+			panelService.fill(panel, output.result);
 			vscode.window.showInformationMessage(
-				`UDIA: open-file comparison complete. Results saved to ${workspaceRoot}/model-comparison-results/open-file/${output.result.runId}.csv`,
+				`JADE: open-file comparison complete. Results saved to ${workspaceRoot}/model-comparison-results/open-file/${output.result.runId}.csv`,
 			);
 		},
 	);
