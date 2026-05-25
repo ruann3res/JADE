@@ -3,7 +3,7 @@
   "displayName": "JADE — Java Static Analysis Repair",
   "publisher": "ruann3res-iftm",
   "description": "Analyze and repair Java static analysis findings with local LLMs, RAG context, traceable reports, and structured feedback.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "MIT",
   "repository": {
     "type": "git",
