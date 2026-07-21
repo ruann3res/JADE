@@ -1,8 +1,8 @@
 # JADE
 
-**JADE - Java Static Analysis Repair** is a VS Code extension for analyzing Java code and generating traceable repair suggestions with local LLMs.
+> **JADE (Java Static Analysis Repair)** is a Visual Studio Code extension that combines static analysis and local Large Language Models (LLMs) to detect Java issues and generate traceable repair suggestions.
 
-JADE combines Java static-analysis heuristics, local models through Ollama, optional RAG context, AI execution reports, safe fix validation, model comparison, and structured user feedback.
+JADE integrates static-analysis heuristics, local LLMs through Ollama, optional Retrieval-Augmented Generation (RAG), AI execution reports, model comparison, safe patch validation, and structured user feedback.
 
 ## Features
 
@@ -17,8 +17,8 @@ JADE combines Java static-analysis heuristics, local models through Ollama, opti
 ## Requirements
 
 - VS Code compatible with `^1.118.0`.
-- [Ollama](https://ollama.com/) running locally.
-- At least one supported model installed:
+- Java Development Kit (JDK) 17 or later
+- [Ollama](https://ollama.com/) running locally with least one supported model installed:
 
 ```bash
 ollama pull deepseek-coder:6.7b
@@ -33,6 +33,18 @@ ollama pull qwen2.5-coder:7b
 Optional:
 
 - Docker, if you want to run `JADE: Setup` for Qdrant and SonarCloud-backed RAG.
+
+## Installation 
+
+### Option 1 (Recommended)
+
+Install JADE directly from the Visual Studio Marketplace.
+
+https://marketplace.visualstudio.com/items?itemName=ruann3res-iftm.jade-static-analysis-repair
+
+### Option 2 (Development)
+
+Clone this repository and run the extension from source by following the instructions in the **Development** section below.
 
 ## Quick Start
 
