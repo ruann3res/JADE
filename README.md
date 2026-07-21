@@ -4,21 +4,21 @@
 
 JADE integrates static-analysis heuristics, local LLMs through Ollama, optional Retrieval-Augmented Generation (RAG), AI execution reports, model comparison, safe patch validation, and structured user feedback.
 
-## Features
+## Associated Paper
 
-- Analyze Java files directly from VS Code.
-- Generate diagnostics for code smells, bugs, security issues, and duplication.
-- Ask a local LLM to generate structured quick fixes.
-- Validate generated patches before applying them to the editor.
-- Review suggestions in a report panel and save structured feedback.
-- Compare supported local models on fixed benchmark samples or on the open Java file.
-- Export reports for auditability and research.
+This repository accompanies the following paper:
+
+> JADE: A VSCode Plugin for Static Analysis-Guided AI-Assisted Refactoring
+
+Accepted at the **SBES 2026 Tools Track**.
+
+> The DOI and final citation will be added after publication.
 
 ## Requirements
 
 - VS Code compatible with `^1.118.0`.
 - Java Development Kit (JDK) 17 or later
-- [Ollama](https://ollama.com/) running locally with least one supported model installed:
+- [Ollama](https://ollama.com/) running locally with **at least one** supported model installed:
 
 ```bash
 ollama pull deepseek-coder:6.7b
@@ -38,7 +38,7 @@ Optional:
 
 ### Option 1 (Recommended)
 
-Install JADE directly from the Visual Studio Marketplace.
+Install JADE directly from the **Visual Studio Marketplace**:
 
 https://marketplace.visualstudio.com/items?itemName=ruann3res-iftm.jade-static-analysis-repair
 
@@ -96,6 +96,16 @@ public class PresentationWorkingSample {
 
 The expected issue is the empty `catch` block. It catches `IllegalArgumentException` but does not handle it, so validation failures can be silently swallowed and the method may continue as if nothing happened.
 
+## Features
+
+- Analyze Java files directly from VS Code.
+- Generate diagnostics for code smells, bugs, security issues, and duplication.
+- Ask a local LLM to generate structured quick fixes.
+- Validate generated patches before applying them to the editor.
+- Review suggestions in a report panel and save structured feedback.
+- Compare supported local models on fixed benchmark samples or on the open Java file.
+- Export reports for auditability and research.
+
 ## Commands
 
 | Command | Description |
@@ -135,6 +145,36 @@ JADE includes a reproducible benchmark battery for comparing Deepseek and Qwen t
 - Run `JADE: Export Model Comparison Samples` to copy the official Java samples, expected findings, and protocol material into the open workspace for inspection.
 
 The benchmark always reads the official samples packaged with the extension. Exporting samples is for auditability and documentation; it does not mutate the packaged benchmark battery.
+
+## Repository Structure
+
+```text
+.
+├── src/                          Source code of the JADE VS Code extension
+│   ├── commands/                 VS Code command implementations
+│   ├── entities/                 Domain entities and data models
+│   ├── handlers/                 Command and workflow handlers
+│   ├── services/                 Core analysis and AI services
+│   ├── test/                     Automated tests
+│   ├── utils/                    Utility classes and helper functions
+│   ├── extension.ts              Extension entry point
+│   └── outputChannel.ts          Output channel management
+│
+├── samples/                      Example Java files and benchmark material
+│   ├── model-comparison/         Official benchmark used for model comparison
+│   │   ├── *.java                Benchmark Java samples
+│   │   └── expected-findings.json Expected findings for the benchmark
+│   ├── CodeSmellsLongMethod.java
+│   └── PresentationWorkingSample.java
+│
+├── CHANGELOG.md                  Release history
+├── LICENSE                       MIT license
+├── README.md                     Project documentation
+├── docker-compose.yml            Optional Docker services (Qdrant/RAG)
+├── esbuild.js                    Build configuration
+├── eslint.config.mjs             ESLint configuration
+└── package.json                  Extension metadata and dependencies
+```
 
 ## Development
 
